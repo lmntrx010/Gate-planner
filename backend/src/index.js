@@ -22,6 +22,22 @@ const supabase = supabaseUrl && supabaseAnonKey && !supabaseAnonKey.startsWith('
 app.use(cors());
 app.use(express.json());
 
+app.get('/api/health', async (req, res) => {
+  try {
+    await dbGet('SELECT 1 AS ok');
+    res.json({
+      status: 'ok',
+      database: dbConfig.isPostgres ? 'supabase-postgres' : 'sqlite-fallback'
+    });
+  } catch (err) {
+    res.status(503).json({
+      status: 'error',
+      database: dbConfig.isPostgres ? 'supabase-postgres' : 'sqlite-fallback',
+      message: err.message
+    });
+  }
+});
+
 // ==========================================
 // CRYPTOGRAPHY SECURE AUTH HELPERS
 // ==========================================

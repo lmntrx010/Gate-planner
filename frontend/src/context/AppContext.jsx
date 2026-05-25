@@ -2,9 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AppContext = createContext();
 
-const API_BASE = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-  ? `${window.location.protocol}//${window.location.hostname}:5000/api`
-  : 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
 
 export function AppProvider({ children }) {
