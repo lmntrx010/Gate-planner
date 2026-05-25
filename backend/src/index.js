@@ -27,12 +27,14 @@ app.get('/api/health', async (req, res) => {
     await dbGet('SELECT 1 AS ok');
     res.json({
       status: 'ok',
-      database: dbConfig.isPostgres ? 'supabase-postgres' : 'sqlite-fallback'
+      database: dbConfig.isPostgres ? 'supabase-postgres' : 'sqlite-fallback',
+      diagnostics: dbConfig.getDatabaseDiagnostics()
     });
   } catch (err) {
     res.status(503).json({
       status: 'error',
       database: dbConfig.isPostgres ? 'supabase-postgres' : 'sqlite-fallback',
+      diagnostics: dbConfig.getDatabaseDiagnostics(),
       message: err.message
     });
   }

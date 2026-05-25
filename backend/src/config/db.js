@@ -4,6 +4,7 @@ const path = require('path');
 
 const databaseUrl = process.env.DATABASE_URL;
 let isPostgres = Boolean(databaseUrl);
+let lastConnectionError = null;
 
 let db = null;
 let pool = null;
@@ -212,6 +213,10 @@ async function initDatabase() {
       console.log('[Database] Supabase Postgres schema initialization complete.');
       return;
     } catch (err) {
+      lastConnectionError = {
+        code: err.code || null,
+        message: err.message
+      };
       console.error('[Database] Supabase Postgres unavailable. Falling back to local SQLite for this run:', err.message);
       await pool.end().catch(() => {});
       pool = null;
@@ -283,6 +288,25 @@ async function dbGet(sql, params = []) {
   });
 }
 
+function getDatabaseDiagnostics() {
+  let databaseHost = null;
+  if (databaseUrl) {
+    try {
+      databaseHost = new URL(databaseUrl).host;
+    } catch (err) {
+      databaseHost = 'invalid-url';
+    }
+  }
+
+  return {
+    hasDatabaseUrl: Boolean(databaseUrl),
+    databaseHost,
+    postgresAttempted: Boolean(databaseUrl),
+    postgresActive: isPostgres,
+    fallbackReason: lastConnectionError
+  };
+}
+
 module.exports = {
   db,
   pool,
@@ -292,5 +316,6 @@ module.exports = {
   initDatabase,
   dbRun,
   dbAll,
-  dbGet
+  dbGet,
+  getDatabaseDiagnostics
 };
