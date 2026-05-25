@@ -165,7 +165,10 @@ const sqliteSchema = [
   )`
 ];
 
-const postgresSchema = sqliteSchema.map(sql => sql.replace(/\bREAL\b/g, 'DOUBLE PRECISION'));
+const postgresSchema = sqliteSchema.map(sql => sql
+  .replace(/\bREAL\b/g, 'DOUBLE PRECISION')
+  .replace(/,\n\s*FOREIGN KEY[^\n]+/g, '')
+);
 
 function toPostgresQuery(sql, params = []) {
   let index = 0;
