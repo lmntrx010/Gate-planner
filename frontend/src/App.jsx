@@ -65,8 +65,8 @@ function MainAppLayout() {
     <div className="min-h-screen flex flex-col md:flex-row relative">
       
       {/* SIDEBAR NAVIGATION */}
-      <aside className="w-full md:w-64 bg-gray-950/80 border-r border-gray-900 flex flex-col justify-between py-6 px-4 shrink-0 backdrop-blur-lg z-20">
-        <div className="space-y-8">
+      <aside className="w-full md:w-64 bg-gray-950/80 border-b md:border-b-0 md:border-r border-gray-900 flex flex-col justify-between py-4 md:py-6 px-4 shrink-0 backdrop-blur-lg z-20">
+        <div className="space-y-4 md:space-y-8">
           {/* Logo */}
           <div className="flex items-center gap-2.5 px-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-500 to-violet-500 flex items-center justify-center shadow-glow">
@@ -79,7 +79,7 @@ function MainAppLayout() {
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1.5">
+          <nav className="grid grid-cols-2 gap-2 md:block md:space-y-1.5">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: Award },
               { id: 'calendar', label: 'Calendar Plan', icon: CalendarIcon },
@@ -92,7 +92,7 @@ function MainAppLayout() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 py-3 px-4 rounded-xl text-xs font-bold transition duration-200 ${
+                  className={`w-full flex items-center justify-center md:justify-start gap-2 md:gap-3 py-3 px-3 md:px-4 rounded-xl text-[11px] md:text-xs font-bold transition duration-200 ${
                     active 
                       ? 'bg-blue-500 text-white shadow-glow' 
                       : 'text-gray-400 hover:text-gray-300 hover:bg-gray-900/30'
@@ -106,7 +106,7 @@ function MainAppLayout() {
         </div>
 
         {/* Floating Widgets Trigger & User Info */}
-        <div className="space-y-4 border-t border-gray-900 pt-6">
+        <div className="space-y-3 md:space-y-4 border-t border-gray-900 pt-4 md:pt-6 mt-4 md:mt-0">
           <button
             onClick={() => setPomodoro(prev => ({ ...prev, isOpen: true }))}
             className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold transition shadow-glow-emerald"
@@ -140,12 +140,12 @@ function MainAppLayout() {
       </aside>
 
       {/* MAIN CONTAINER */}
-      <main className="flex-1 flex flex-col min-w-0 bg-black overflow-y-auto px-6 py-8 relative">
+      <main className="flex-1 flex flex-col min-w-0 bg-black overflow-y-auto px-3 sm:px-4 md:px-6 py-5 md:py-8 relative">
         
         {/* HEADER BAR */}
-        <header className="flex items-center justify-between mb-8 pb-4 border-b border-gray-900">
-          <div>
-            <h2 className="text-xl font-extrabold text-white tracking-wide font-sans">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8 pb-4 border-b border-gray-900">
+          <div className="min-w-0">
+            <h2 className="text-lg md:text-xl font-extrabold text-white tracking-wide font-sans">
               {activeTab === 'dashboard' && 'Milestones Dashboard'}
               {activeTab === 'calendar' && 'Notion Calendar Plan'}
               {activeTab === 'graph' && 'Dependency Flow Mapping'}
@@ -154,13 +154,13 @@ function MainAppLayout() {
             <span className="text-xs text-gray-500 block mt-0.5">Prepare with structured GeeksforGeeks resources</span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto">
             
             {/* EXPORTS SYSTEM */}
             <div className="relative">
               <button
                 onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-                className="flex items-center gap-1.5 py-2 px-4 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-800 text-xs font-bold text-gray-300 transition"
+                className="flex items-center gap-1.5 py-2 px-3 sm:px-4 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-800 text-xs font-bold text-gray-300 transition"
               >
                 <Download className="w-4 h-4" /> Export Plan
               </button>

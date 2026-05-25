@@ -214,20 +214,20 @@ export default function Calendar({ onSelectTopic }) {
   return (
     <div className="space-y-6">
       {/* Calendar Header Control */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-800/80 backdrop-blur-md">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gray-900/40 p-3 sm:p-4 rounded-xl border border-gray-800/80 backdrop-blur-md">
+        <div className="flex items-center gap-2 w-full lg:w-auto">
           <CalendarIcon className="text-cyber-primary w-6 h-6" />
           <h2 className="text-xl font-bold text-white tracking-wide font-sans">Prep Calendar</h2>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap items-stretch sm:items-center gap-3 sm:gap-4 w-full lg:w-auto">
           {/* View Toggles */}
-          <div className="flex bg-gray-950 rounded-lg p-1 border border-gray-900">
+          <div className="grid grid-cols-3 sm:flex bg-gray-950 rounded-lg p-1 border border-gray-900 w-full sm:w-auto">
             {['week', 'month', 'agenda'].map(v => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`py-1.5 px-4 rounded-md text-xs font-semibold uppercase tracking-wider transition duration-200 ${
+                className={`py-1.5 px-2 sm:px-4 rounded-md text-xs font-semibold uppercase tracking-wider transition duration-200 ${
                   view === v 
                     ? 'bg-cyber-primary text-white shadow-glow' 
                     : 'text-gray-400 hover:text-gray-300'
@@ -240,7 +240,7 @@ export default function Calendar({ onSelectTopic }) {
 
           {/* Navigation */}
           {view === 'week' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between sm:justify-start gap-2">
               <button 
                 onClick={handlePrevWeek}
                 disabled={currentWeekIndex === 0}
@@ -267,28 +267,28 @@ export default function Calendar({ onSelectTopic }) {
               const todayStr = new Date().toISOString().split('T')[0];
               adaptiveReschedule(todayStr);
             }}
-            className="flex items-center gap-2 py-2 px-4 rounded-lg bg-cyber-rose/10 border border-cyber-rose/30 text-cyber-rose text-xs font-semibold hover:bg-cyber-rose/25 transition-all shadow-glow-rose duration-300"
+            className="flex items-center justify-center gap-2 py-2 px-3 sm:px-4 rounded-lg bg-cyber-rose/10 border border-cyber-rose/30 text-cyber-rose text-xs font-semibold hover:bg-cyber-rose/25 transition-all shadow-glow-rose duration-300"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Rebalance Backlogs
           </button>
 
           <button
             onClick={() => openPlanningDraft('nitc_phase1')}
-            className="flex items-center gap-2 py-2 px-4 rounded-lg bg-cyber-emerald/10 border border-cyber-emerald/30 text-cyber-emerald text-xs font-semibold hover:bg-cyber-emerald/25 transition-all shadow-glow-emerald duration-300"
+            className="flex items-center justify-center gap-2 py-2 px-3 sm:px-4 rounded-lg bg-cyber-emerald/10 border border-cyber-emerald/30 text-cyber-emerald text-xs font-semibold hover:bg-cyber-emerald/25 transition-all shadow-glow-emerald duration-300"
           >
             <Award className="w-3.5 h-3.5" /> NITC Phase 1
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-[1fr_auto] sm:flex sm:items-center gap-2">
             <input
               type="date"
               value={phaseTargetDate}
               onChange={(e) => setPhaseTargetDate(e.target.value)}
-              className="bg-gray-950 border border-gray-800 rounded-lg px-2 py-2 text-xs text-gray-300"
+              className="bg-gray-950 border border-gray-800 rounded-lg px-2 py-2 text-xs text-gray-300 min-w-0"
             />
             <button
               onClick={() => openPlanningDraft('phase2')}
-              className="flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-950 border border-gray-800 text-gray-300 text-xs font-semibold hover:border-cyber-primary transition"
+              className="flex items-center justify-center gap-2 py-2 px-3 sm:px-4 rounded-lg bg-gray-950 border border-gray-800 text-gray-300 text-xs font-semibold hover:border-cyber-primary transition whitespace-nowrap"
             >
               Compile Remaining
             </button>
@@ -298,7 +298,7 @@ export default function Calendar({ onSelectTopic }) {
 
       {/* WEEK VIEW */}
       {view === 'week' && (
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 md:gap-4">
           {currentWeek.map(day => (
             <div 
               key={day.date}
@@ -411,8 +411,8 @@ export default function Calendar({ onSelectTopic }) {
 
       {/* MONTH VIEW */}
       {view === 'month' && (
-        <div className="glass-panel rounded-xl p-6 border border-gray-800">
-          <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
+        <div className="glass-panel rounded-xl p-3 sm:p-6 border border-gray-800">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
             <div>Mon</div>
             <div>Tue</div>
             <div>Wed</div>
@@ -422,7 +422,7 @@ export default function Calendar({ onSelectTopic }) {
             <div>Sun</div>
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {calendar.map((day, idx) => {
               const hasCompleted = day.tasks.some(t => t.completed);
               const allCompleted = day.tasks.length > 0 && day.tasks.every(t => t.completed);
@@ -448,7 +448,7 @@ export default function Calendar({ onSelectTopic }) {
                     setView('week');
                     setCurrentWeekIndex(Math.floor(idx / 7));
                   }}
-                  className={`h-16 rounded-xl border flex flex-col justify-between p-2 text-left cursor-pointer transition duration-300 ${cellBg}`}
+                  className={`h-14 sm:h-16 rounded-lg sm:rounded-xl border flex flex-col justify-between p-1.5 sm:p-2 text-left cursor-pointer transition duration-300 ${cellBg}`}
                 >
                   <span className="text-[10px] font-bold">{day.date.substring(8, 10)}</span>
                   <div className="flex items-center justify-between text-[9px] font-bold opacity-80">
@@ -540,7 +540,7 @@ export default function Calendar({ onSelectTopic }) {
             top: `${hoverPosition.y}px`, 
             zIndex: 999 
           }}
-          className="w-80 glass-panel border border-cyber-primary/30 p-4 rounded-xl shadow-glass transform -translate-x-1/2 pointer-events-none"
+          className="hidden sm:block w-80 glass-panel border border-cyber-primary/30 p-4 rounded-xl shadow-glass transform -translate-x-1/2 pointer-events-none"
         >
           <div className="flex justify-between items-start">
             <span className="bg-cyber-primary/20 text-cyber-primary border border-cyber-primary/30 rounded py-0.5 px-2 text-[9px] uppercase tracking-widest font-extrabold">
@@ -580,8 +580,8 @@ export default function Calendar({ onSelectTopic }) {
       )}
 
       {addDraft && (
-        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-xl glass-panel border border-cyber-primary/30 rounded-xl p-5 space-y-4">
+        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-xl glass-panel border border-cyber-primary/30 rounded-xl p-4 sm:p-5 space-y-4 my-4 sm:my-0 max-h-[calc(100vh-2rem)] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-extrabold text-white">Add Topic To {addDraft.date}</h3>
               <button onClick={() => setAddDraft(null)} className="p-2 text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
@@ -739,8 +739,8 @@ export default function Calendar({ onSelectTopic }) {
       )}
 
       {logDraft && (
-        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md glass-panel border border-cyber-emerald/30 rounded-xl p-5 space-y-4">
+        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-md glass-panel border border-cyber-emerald/30 rounded-xl p-4 sm:p-5 space-y-4 my-4 sm:my-0 max-h-[calc(100vh-2rem)] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-extrabold text-white flex items-center gap-2"><Timer className="w-5 h-5 text-cyber-emerald" /> Log Study Time</h3>
               <button onClick={() => setLogDraft(null)} className="p-2 text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
@@ -778,8 +778,8 @@ export default function Calendar({ onSelectTopic }) {
       )}
 
       {planningDraft && (
-        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl glass-panel border border-cyber-emerald/30 rounded-xl p-5 space-y-4">
+        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl glass-panel border border-cyber-emerald/30 rounded-xl p-4 sm:p-5 space-y-4 my-4 sm:my-0 max-h-[calc(100vh-2rem)] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-[10px] text-cyber-emerald font-black uppercase tracking-widest">
@@ -890,8 +890,8 @@ export default function Calendar({ onSelectTopic }) {
       )}
 
       {completionDraft && (
-        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel border border-gray-800 rounded-xl p-5 w-full max-w-md shadow-glass">
+        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="glass-panel border border-gray-800 rounded-xl p-4 sm:p-5 w-full max-w-md shadow-glass my-4 sm:my-0 max-h-[calc(100vh-2rem)] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-[10px] text-cyber-primary font-black uppercase tracking-widest">Mark Completed</div>
