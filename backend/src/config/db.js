@@ -165,10 +165,16 @@ const sqliteSchema = [
   )`
 ];
 
-const postgresSchema = sqliteSchema.map(sql => sql
-  .replace(/\bREAL\b/g, 'DOUBLE PRECISION')
-  .replace(/,\n\s*FOREIGN KEY[^\n]+/g, '')
-);
+function preparePostgresSchema(sql) {
+  return sql
+    .replace(/\bREAL\b/g, 'DOUBLE PRECISION')
+    .split('\n')
+    .filter(line => !line.trim().startsWith('FOREIGN KEY'))
+    .join('\n')
+    .replace(/,\s*\n\s*\)/g, '\n  )');
+}
+
+const postgresSchema = sqliteSchema.map(preparePostgresSchema);
 
 function toPostgresQuery(sql, params = []) {
   let index = 0;
