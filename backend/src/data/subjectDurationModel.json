@@ -1,0 +1,15 @@
+{
+  "C Programming": { "targetHours": 22, "source": "GFG/NPTEL calibrated" },
+  "Data Structure": { "targetHours": 38, "source": "GFG/NPTEL calibrated" },
+  "Algorithm": { "targetHours": 35, "source": "GFG/NPTEL calibrated" },
+  "Theory of Computation": { "targetHours": 38, "source": "GFG day allocation calibrated" },
+  "Compiler Design": { "targetHours": 26, "source": "GFG day allocation calibrated" },
+  "Digital Logic": { "targetHours": 24, "source": "GFG day allocation calibrated" },
+  "Computer Organization and Architecture": { "targetHours": 36, "source": "GFG day allocation calibrated" },
+  "Operating System": { "targetHours": 42, "source": "GFG day allocation calibrated" },
+  "DBMS": { "targetHours": 34, "source": "GFG day allocation calibrated" },
+  "Computer Networks": { "targetHours": 36, "source": "GFG day allocation calibrated" },
+  "Discrete Mathematics": { "targetHours": 38, "source": "GATE mathematics workload calibrated" },
+  "Engineering Mathematics": { "targetHours": 34, "source": "GFG day allocation calibrated" },
+  "General Aptitude": { "targetHours": 24, "source": "GFG day allocation calibrated" }
+}

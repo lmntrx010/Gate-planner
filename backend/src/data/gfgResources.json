@@ -1,0 +1,1113 @@
+[
+  {
+    "subject": "C Programming",
+    "weightage": 4.5,
+    "difficulty": "Beginner",
+    "topics": [
+      {
+        "name": "Variables, Data Types, and Operators",
+        "estimatedHours": 4,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/c-variables/",
+        "learningObjectives": [
+          "Understand C syntax structure",
+          "Master data type sizes and typecasting",
+          "Learn arithmetic, logical, and bitwise operators"
+        ],
+        "recommendedPyqs": 5
+      },
+      {
+        "name": "Conditional Statements and Loops",
+        "estimatedHours": 5,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/decision-making-c-cpp/",
+        "learningObjectives": [
+          "Analyze complex loop execution",
+          "Master nested loops and break/continue",
+          "Predict loop counts and loop invariants"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Functions and Recursion",
+        "estimatedHours": 7,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/recursion-in-c/",
+        "learningObjectives": [
+          "Master call by value vs call by reference",
+          "Trace complex recursion stacks",
+          "Calculate recursion time complexity"
+        ],
+        "recommendedPyqs": 12
+      },
+      {
+        "name": "Arrays and Pointers",
+        "estimatedHours": 9,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/pointers-in-c-and-c-plus-plus/",
+        "learningObjectives": [
+          "Understand pointer arithmetic and memory addressing",
+          "Resolve pointer-to-pointer dereferences",
+          "Trace 2D and multi-dimensional array pointer indexing"
+        ],
+        "recommendedPyqs": 15
+      },
+      {
+        "name": "Structures and Unions",
+        "estimatedHours": 4,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/structures-c/",
+        "learningObjectives": [
+          "Understand struct memory layout and padding",
+          "Master union shared memory behavior",
+          "Trace pointer to structures"
+        ],
+        "recommendedPyqs": 6
+      }
+    ]
+  },
+  {
+    "subject": "Data Structure",
+    "weightage": 8.5,
+    "difficulty": "Intermediate",
+    "topics": [
+      {
+        "name": "Arrays, Stacks, and Queues",
+        "estimatedHours": 7,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/stack-data-structure/",
+        "learningObjectives": [
+          "Implement stacks and queues using arrays and lists",
+          "Apply stack to infix/postfix expression conversion",
+          "Master circular queue operations and boundary conditions"
+        ],
+        "recommendedPyqs": 10
+      },
+      {
+        "name": "Linked Lists",
+        "estimatedHours": 6,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/data-structures/linked-list/",
+        "learningObjectives": [
+          "Implement Singly, Doubly, and Circular linked lists",
+          "Perform operations: reversal, loop detection, and merging",
+          "Trace pointer changes in list operations"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Trees and Binary Search Trees",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/binary-search-tree-data-structure/",
+        "learningObjectives": [
+          "Master tree traversals: Inorder, Preorder, Postorder",
+          "Understand BST insertion, deletion, and search properties",
+          "Calculate tree height, node counts, and balanced structures"
+        ],
+        "recommendedPyqs": 14
+      },
+      {
+        "name": "Binary Heaps and Priority Queues",
+        "estimatedHours": 6,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/heap-data-structure/",
+        "learningObjectives": [
+          "Build max and min heaps",
+          "Analyze heapify complexity O(N)",
+          "Master priority queue insertion and heap-extract-min"
+        ],
+        "recommendedPyqs": 7
+      },
+      {
+        "name": "Hashing",
+        "estimatedHours": 5,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/hashing-data-structure/",
+        "learningObjectives": [
+          "Learn hash functions: division, multiplication, folding",
+          "Solve collisions using open addressing and chaining",
+          "Analyze average vs worst-case search complexity"
+        ],
+        "recommendedPyqs": 8
+      }
+    ]
+  },
+  {
+    "subject": "Algorithm",
+    "weightage": 9,
+    "difficulty": "Advanced",
+    "topics": [
+      {
+        "name": "Asymptotic Analysis and Recurrences",
+        "estimatedHours": 6,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/analysis-of-algorithms-set-1-asymptotic-analysis/",
+        "learningObjectives": [
+          "Master Big-O, Theta, and Omega definitions",
+          "Solve recurrences using Master's Theorem & Substitution",
+          "Analyze nested loop complexity"
+        ],
+        "recommendedPyqs": 12
+      },
+      {
+        "name": "Sorting and Searching",
+        "estimatedHours": 8,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/sorting-algorithms/",
+        "learningObjectives": [
+          "Analyze Merge, Quick, Heap, Bubble, and Insertion sorts",
+          "Understand stability and in-place sorting properties",
+          "Solve comparison-based sorting lower bounds O(N log N)"
+        ],
+        "recommendedPyqs": 10
+      },
+      {
+        "name": "Divide and Conquer",
+        "estimatedHours": 5,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/divide-and-conquer/",
+        "learningObjectives": [
+          "Apply divide & conquer paradigm",
+          "Solve Binary Search, Merge Sort recurrence systems",
+          "Understand Strassen's matrix multiplication"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "Greedy Algorithms",
+        "estimatedHours": 7,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/greedy-algorithms/",
+        "learningObjectives": [
+          "Understand greedy choice property and optimal substructure",
+          "Implement Huffman Coding, Fractional Knapsack, Activity Selection",
+          "Analyze Prim's and Kruskal's MST algorithm complexity"
+        ],
+        "recommendedPyqs": 11
+      },
+      {
+        "name": "Dynamic Programming",
+        "estimatedHours": 12,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/dynamic-programming/",
+        "learningObjectives": [
+          "Identify overlapping subproblems",
+          "Trace Matrix Chain Multiplication and Longest Common Subsequence",
+          "Design solutions for 0/1 Knapsack and Floyd-Warshall"
+        ],
+        "recommendedPyqs": 15
+      },
+      {
+        "name": "Graph Traversal and Shortest Paths",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/graph-data-structure-and-algorithms/",
+        "learningObjectives": [
+          "Apply BFS and DFS with their edge classifications",
+          "Calculate single source shortest path using Dijkstra and Bellman-Ford",
+          "Analyze all-pairs shortest paths"
+        ],
+        "recommendedPyqs": 13
+      }
+    ]
+  },
+  {
+    "subject": "Theory of Computation",
+    "weightage": 8,
+    "difficulty": "Advanced",
+    "topics": [
+      {
+        "name": "Regular Languages and Finite Automata",
+        "estimatedHours": 12,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/introduction-of-theory-of-computation/",
+        "learningObjectives": [
+          "Design DFA, NFA, and Minimized DFAs",
+          "Write Regular Expressions for token structures",
+          "Apply closure properties of regular languages"
+        ],
+        "recommendedPyqs": 14
+      },
+      {
+        "name": "Context Free Languages and Pushdown Automata",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/context-free-languages-and-pushdown-automata/",
+        "learningObjectives": [
+          "Design Context-Free Grammars and PDA",
+          "Trace non-deterministic PDA paths",
+          "Understand ambiguity in grammars and pumping lemma"
+        ],
+        "recommendedPyqs": 12
+      },
+      {
+        "name": "Turing Machines and Decidability",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/turing-machine-in-toc/",
+        "learningObjectives": [
+          "Construct Turing Machines",
+          "Master halting problem and reduction concepts",
+          "Differentiate Decidable, Undecidable, and Semi-decidable problems"
+        ],
+        "recommendedPyqs": 15
+      }
+    ]
+  },
+  {
+    "subject": "Compiler Design",
+    "weightage": 4,
+    "difficulty": "Advanced",
+    "topics": [
+      {
+        "name": "Lexical Analysis",
+        "estimatedHours": 4,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/introduction-to-lexical-analysis-in-compiler-design/",
+        "learningObjectives": [
+          "Learn tokenization and regular grammar definitions",
+          "Analyze lexer buffering techniques",
+          "Determine token count under edge conditions"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "Parsing",
+        "estimatedHours": 12,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/parsing-in-compiler-design/",
+        "learningObjectives": [
+          "Calculate FIRST and FOLLOW sets",
+          "Construct LL(1) top-down parser tables",
+          "Analyze Bottom-up LR(0), SLR(1), CLR(1), LALR(1) table conflict resolution"
+        ],
+        "recommendedPyqs": 14
+      },
+      {
+        "name": "Syntax Directed Translation and Intermediate Code",
+        "estimatedHours": 7,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/syntax-directed-translation-in-compiler-design/",
+        "learningObjectives": [
+          "Differentiate S-attributed and L-attributed evaluation",
+          "Generate Three-Address Code, Quadruples, and Triples",
+          "Trace syntax trees and DAG representation"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Code Optimization and Generation",
+        "estimatedHours": 6,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/code-optimization-in-compiler-design/",
+        "learningObjectives": [
+          "Learn basic blocks and flow graph generation",
+          "Apply local optimizations: constant folding, copy propagation, dead code elimination",
+          "Master loop optimization techniques"
+        ],
+        "recommendedPyqs": 9
+      }
+    ]
+  },
+  {
+    "subject": "Digital Logic",
+    "weightage": 5.5,
+    "difficulty": "Beginner",
+    "topics": [
+      {
+        "name": "Boolean Algebra and Logic Gates",
+        "estimatedHours": 5,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/boolean-algebra/",
+        "learningObjectives": [
+          "Simplify boolean expressions using theorems",
+          "Implement logic using NAND/NOR universal gates",
+          "Master duality and Shannon's expansion theorem"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Minimization Techniques",
+        "estimatedHours": 5,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/k-map-karnaugh-map/",
+        "learningObjectives": [
+          "Master K-Map simplification with don't care conditions",
+          "Identify prime implicants and essential prime implicants",
+          "Understand Quine-McCluskey tabular minimization"
+        ],
+        "recommendedPyqs": 7
+      },
+      {
+        "name": "Combinational Circuits",
+        "estimatedHours": 8,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/combinational-circuits/",
+        "learningObjectives": [
+          "Design Adders, Subtractors, and Look-Ahead Adders",
+          "Build and cascade Multiplexers and Decoders",
+          "Master ROM and PLA implementation structures"
+        ],
+        "recommendedPyqs": 10
+      },
+      {
+        "name": "Sequential Circuits",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/sequential-circuits-in-digital-logic/",
+        "learningObjectives": [
+          "Understand Latches and Flip-Flops: SR, JK, D, T and excitation tables",
+          "Design synchronous and asynchronous counters",
+          "Resolve state reduction and race-around conditions"
+        ],
+        "recommendedPyqs": 12
+      },
+      {
+        "name": "Number Representations",
+        "estimatedHours": 4,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/number-system-and-base-conversions/",
+        "learningObjectives": [
+          "Convert between bases: decimal, binary, hex",
+          "Master 1's and 2's complement arithmetic",
+          "Understand IEEE 754 floating point standard formats"
+        ],
+        "recommendedPyqs": 6
+      }
+    ]
+  },
+  {
+    "subject": "Computer Organization and Architecture",
+    "weightage": 6.5,
+    "difficulty": "Advanced",
+    "topics": [
+      {
+        "name": "COA: Instruction Formats & Addressing Fields",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/computer-organization-instructions-addressing-modes/",
+        "learningObjectives": [
+          "Learn instruction formats (Opcode, Operands)",
+          "Deconstruct Zero, One, Two, and Three address instructions"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "COA: Addressing Modes & CPU Cycles",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/computer-organization-instructions-addressing-modes/",
+        "learningObjectives": [
+          "Master Addressing modes (Direct, Indirect, Relative, Indexed)",
+          "Understand CPU Instruction Cycles"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "COA: CPU Datapath & RTL",
+        "estimatedHours": 2,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/computer-organization-and-architecture-pipelining-set-1/",
+        "learningObjectives": [
+          "Learn CPU Datapath & Register Transfer Language (RTL)",
+          "Trace basic arithmetic micro-operations"
+        ],
+        "recommendedPyqs": 4
+      },
+      {
+        "name": "COA: Control Unit Design (Hardwired vs Microprogrammed)",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/computer-organization-and-architecture-pipelining-set-1/",
+        "learningObjectives": [
+          "Differentiate Hardwired vs Microprogrammed Control Units",
+          "Contrast Horizontal vs Vertical Microprogramming"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "COA: Fixed Point Arithmetic & Number Systems",
+        "estimatedHours": 2,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/number-system-and-base-conversions/",
+        "learningObjectives": [
+          "Understand Signed Number Systems",
+          "Binary Addition, Subtraction, and Overflow detection"
+        ],
+        "recommendedPyqs": 4
+      },
+      {
+        "name": "COA: Booth's Algorithm & Division Algorithms",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/number-system-and-base-conversions/",
+        "learningObjectives": [
+          "Master Booth's Signed Multiplication",
+          "Understand Restoring & Non-Restoring Division"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "COA: IEEE 754 Floating Point Standard",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/number-system-and-base-conversions/",
+        "learningObjectives": [
+          "Master Single & Double Precision IEEE 754 formats",
+          "Trace Floating Point Arithmetic operations"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "COA: Instruction Pipelining Concepts",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/computer-organization-and-architecture-pipelining-set-1/",
+        "learningObjectives": [
+          "Understand Pipelined execution and Space-Time diagrams",
+          "Calculate Speedup, Efficiency, and Throughput"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "COA: Pipeline Hazards & Data Forwarding",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/pipelining-hazards-in-computer-architecture/",
+        "learningObjectives": [
+          "Identify Structural Hazards and resource conflicts",
+          "Resolve Data Hazards (RAW, WAR, WAW) using Data Forwarding"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "COA: Control Hazards & Branch Penalties",
+        "estimatedHours": 3,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/pipelining-hazards-in-computer-architecture/",
+        "learningObjectives": [
+          "Analyze Control Hazards and Branch Penalties",
+          "Understand Branch Prediction and Delayed Branches"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "COA: Memory Hierarchy & Locality of Reference",
+        "estimatedHours": 2,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/cache-memory-in-computer-organization/",
+        "learningObjectives": [
+          "Understand Memory Hierarchy & Access speeds",
+          "Master Temporal & Spatial Locality of Reference"
+        ],
+        "recommendedPyqs": 4
+      },
+      {
+        "name": "COA: Cache Memory Mapping (Direct Mapping)",
+        "estimatedHours": 3,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/cache-memory-in-computer-organization/",
+        "learningObjectives": [
+          "Master Direct cache mapping address division",
+          "Calculate Cache index, tag, and offsets"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "COA: Cache Memory Mapping (Associative & Set-Associative)",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/cache-memory-in-computer-organization/",
+        "learningObjectives": [
+          "Understand Fully Associative mapping",
+          "Master Set-Associative mapping address division"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "COA: Cache Policies & Virtual Memory",
+        "estimatedHours": 3,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/cache-memory-in-computer-organization/",
+        "learningObjectives": [
+          "Differentiate Write-Through vs Write-Back policies",
+          "Understand Virtual Memory, Paging, and Translation Lookaside Buffers (TLB)"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "COA: Input-Output Organization (Programmed & Interrupt I/O)",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/input-output-processor/",
+        "learningObjectives": [
+          "Analyze Programmed I/O vs Interrupt-Driven I/O modes",
+          "Master Daisy-Chaining priority systems"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "COA: Direct Memory Access (DMA)",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/input-output-processor/",
+        "learningObjectives": [
+          "Understand DMA controllers and register architectures",
+          "Differentiate DMA Burst transfer vs Cycle Stealing"
+        ],
+        "recommendedPyqs": 6
+      }
+    ]
+  },
+  {
+    "subject": "Operating System",
+    "weightage": 8.5,
+    "difficulty": "Intermediate",
+    "topics": [
+      {
+        "name": "Process Management and Threading",
+        "estimatedHours": 6,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/operating-systems/",
+        "learningObjectives": [
+          "Understand Process Control Blocks and state transitions",
+          "Trace fork() execution trees and count child processes",
+          "Differentiate user-level vs kernel-level threads"
+        ],
+        "recommendedPyqs": 9
+      },
+      {
+        "name": "CPU Scheduling",
+        "estimatedHours": 7,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/cpu-scheduling-in-operating-systems/",
+        "learningObjectives": [
+          "Calculate turnaround, waiting, and response times",
+          "Apply FCFS, SJF, SRTF, Round Robin, and Priority scheduling",
+          "Understand Gantt chart scheduling states"
+        ],
+        "recommendedPyqs": 10
+      },
+      {
+        "name": "Process Synchronization",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/process-synchronization-in-operating-system/",
+        "learningObjectives": [
+          "Resolve Mutual Exclusion, Progress, and Bounded Waiting",
+          "Implement solutions using Test-and-Set and Semaphores",
+          "Trace classic synchronization problems: Producer-Consumer, Dining Philosophers"
+        ],
+        "recommendedPyqs": 14
+      },
+      {
+        "name": "Deadlocks",
+        "estimatedHours": 6,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/bankers-algorithm-in-operating-system-2/",
+        "learningObjectives": [
+          "Learn deadlock conditions: mutual exclusion, hold-and-wait, no preemption, circular wait",
+          "Run Banker's Algorithm for resource allocation and safety checking",
+          "Understand deadlock detection and recovery strategies"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Memory Management",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/paging-in-operating-system/",
+        "learningObjectives": [
+          "Calculate page tables, frame sizes, and physical addresses",
+          "Master multi-level paging and translation lookaside buffers (TLB)",
+          "Understand segmentation memory structures"
+        ],
+        "recommendedPyqs": 12
+      },
+      {
+        "name": "Virtual Memory and Page Replacement",
+        "estimatedHours": 7,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/page-replacement-algorithms-in-operating-systems/",
+        "learningObjectives": [
+          "Trace page replacements: FIFO, LRU, Optimal",
+          "Identify Belady's Anomaly behavior",
+          "Understand thrashing and working-set models"
+        ],
+        "recommendedPyqs": 9
+      },
+      {
+        "name": "File Systems and Disk Scheduling",
+        "estimatedHours": 6,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/disk-scheduling-algorithms-in-operating-systems/",
+        "learningObjectives": [
+          "Understand file allocation tables, inodes, and directories",
+          "Calculate disk seek overheads",
+          "Apply FCFS, SSTF, SCAN, C-SCAN disk scheduling algorithms"
+        ],
+        "recommendedPyqs": 8
+      }
+    ]
+  },
+  {
+    "subject": "DBMS",
+    "weightage": 7.5,
+    "difficulty": "Intermediate",
+    "topics": [
+      {
+        "name": "ER Model: Introduction to DBMS & Entities",
+        "estimatedHours": 2,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/dbms-introduction-to-entity-relationship-model/",
+        "learningObjectives": [
+          "Introduction to Database Management Systems",
+          "Understand Entities, Attributes, and Entity Sets"
+        ],
+        "recommendedPyqs": 4
+      },
+      {
+        "name": "ER Model: Relationships & Mapping Cardinalities",
+        "estimatedHours": 2,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/dbms-introduction-to-entity-relationship-model/",
+        "learningObjectives": [
+          "Master Relationship Sets & Mapping Cardinalities",
+          "Understand Total & Partial Participation Constraints"
+        ],
+        "recommendedPyqs": 4
+      },
+      {
+        "name": "ER Model: Weak Entity Sets & Table Conversion",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/dbms-introduction-to-entity-relationship-model/",
+        "learningObjectives": [
+          "Design Weak Entity Sets & Identifying Relationships",
+          "Minimize ER Diagrams to Relational Tables"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "Relational Model: Introduction & Relational Algebra Operators",
+        "estimatedHours": 3,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/relational-algebra-in-dbms/",
+        "learningObjectives": [
+          "Learn Relational Model Concepts & Codd's Rules",
+          "Master Selection & Projection Operations"
+        ],
+        "recommendedPyqs": 5
+      },
+      {
+        "name": "Relational Model: Set Operations & Cartesian Product",
+        "estimatedHours": 2,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/relational-algebra-in-dbms/",
+        "learningObjectives": [
+          "Master Union, Intersection, and Set Difference",
+          "Understand Rename & Cartesian Product"
+        ],
+        "recommendedPyqs": 4
+      },
+      {
+        "name": "Relational Model: Joins & Division Operators",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/relational-algebra-in-dbms/",
+        "learningObjectives": [
+          "Master Inner, Outer, Theta, and Natural Joins",
+          "Understand Relational Algebra Division"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Relational Model: Tuple & Domain Calculus",
+        "estimatedHours": 3,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/tuple-relational-calculus-in-dbms/",
+        "learningObjectives": [
+          "Understand Tuple Relational Calculus (TRC)",
+          "Understand Domain Relational Calculus (DRC)"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "SQL: DDL Commands & Basic Queries",
+        "estimatedHours": 2,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/sql-tutorial/",
+        "learningObjectives": [
+          "Master SQL DDL Commands (Create, Drop, Alter, Truncate)",
+          "Write basic Select, Where, and logical operator queries"
+        ],
+        "recommendedPyqs": 4
+      },
+      {
+        "name": "SQL: Aggregations & Grouping Clauses",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/sql-tutorial/",
+        "learningObjectives": [
+          "Understand SQL Aggregate functions",
+          "Master Group By & Having clauses"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "SQL: Joins, Nested Subqueries & Null Values",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/sql-tutorial/",
+        "learningObjectives": [
+          "Write SQL Joins & Nested/Correlated Subqueries",
+          "Understand SQL Null values & 3-valued logic"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Normalization: Integrity Constraints & FDs",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/normal-forms-in-dbms/",
+        "learningObjectives": [
+          "Master Primary Key, Foreign Key, and Referential Integrity",
+          "Calculate Functional Dependency closures"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "Normalization: Equivalence, Canonical Covers & Keys",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/normal-forms-in-dbms/",
+        "learningObjectives": [
+          "Test FD Equivalence & calculate Canonical Cover",
+          "Calculate Super Keys & Candidate Keys"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Normalization: Normal Forms (1NF, 2NF, 3NF, BCNN)",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/normal-forms-in-dbms/",
+        "learningObjectives": [
+          "Understand 1NF and 2NF criteria",
+          "Differentiate 3NF and BCNF properties"
+        ],
+        "recommendedPyqs": 10
+      },
+      {
+        "name": "Normalization: Lossless Join & Dependency Preservation",
+        "estimatedHours": 3,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/normal-forms-in-dbms/",
+        "learningObjectives": [
+          "Test for Lossless-Join Decomposition",
+          "Test for Dependency-Preserving Decomposition"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Transactions: ACID Properties & Schedules",
+        "estimatedHours": 3,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/concurrency-control-in-dbms/",
+        "learningObjectives": [
+          "Learn Transaction states & ACID properties",
+          "Understand serial vs non-serial Schedules"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "Transactions: Serializability (Conflict & View)",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/concurrency-control-in-dbms/",
+        "learningObjectives": [
+          "Master Conflict Serializability & Precedence graphs",
+          "Understand View Serializability and testing"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Transactions: Recoverability & Concurrency Locking",
+        "estimatedHours": 3,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/concurrency-control-in-dbms/",
+        "learningObjectives": [
+          "Differentiate Recoverable, Cascade-less, and Strict schedules",
+          "Master 2-Phase Locking (2PL), Strict 2PL, and Rigorous 2PL"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Transactions: Timestamping & Deadlocks",
+        "estimatedHours": 3,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/concurrency-control-in-dbms/",
+        "learningObjectives": [
+          "Understand Timestamp Ordering & Thomas Write Rule",
+          "Manage Deadlocks (Prevention, Detection, Recovery)"
+        ],
+        "recommendedPyqs": 6
+      },
+      {
+        "name": "Indexing: File Structures & Single-Level Indexes",
+        "estimatedHours": 2,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/indexing-in-databases-set-1/",
+        "learningObjectives": [
+          "Learn Heap, Sequential, and Hash File organization",
+          "Understand Dense, Sparse, Primary, and Secondary indexing"
+        ],
+        "recommendedPyqs": 5
+      },
+      {
+        "name": "Indexing: B-Trees and B+ Trees",
+        "estimatedHours": 4,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/indexing-in-databases-set-1/",
+        "learningObjectives": [
+          "Master B-Tree insertion and deletion",
+          "Understand B+ Tree structures and average access times"
+        ],
+        "recommendedPyqs": 8
+      }
+    ]
+  },
+  {
+    "subject": "Computer Networks",
+    "weightage": 8.5,
+    "difficulty": "Advanced",
+    "topics": [
+      {
+        "name": "Data Link Layer Protocols",
+        "estimatedHours": 8,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/flow-control-in-data-link-layer/",
+        "learningObjectives": [
+          "Analyze sliding window protocols: Stop-and-Wait, Go-Back-N, Selective Repeat",
+          "Master framing, parity, CRC error detection, and Hamming codes",
+          "Calculate channel efficiency and transmission delays"
+        ],
+        "recommendedPyqs": 11
+      },
+      {
+        "name": "Medium Access Control",
+        "estimatedHours": 6,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/multiple-access-protocols-in-computer-network/",
+        "learningObjectives": [
+          "Analyze ALOHA, Slotted ALOHA, CSMA/CD, and CSMA/CA protocols",
+          "Calculate backoff periods, minimum frame size, and collision zones",
+          "Understand Ethernet bridging, switches, and VLAN networks"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Routing Protocols",
+        "estimatedHours": 6,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/routing-protocols-in-computer-network/",
+        "learningObjectives": [
+          "Differentiate Distance Vector routing (RIP) and Link State routing (OSPF)",
+          "Solve Count-to-Infinity routing loop problems",
+          "Understand Border Gateway Protocol (BGP) routing"
+        ],
+        "recommendedPyqs": 7
+      },
+      {
+        "name": "IP Addressing and Subnetting",
+        "estimatedHours": 8,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/ip-addressing-and-subnetting/",
+        "learningObjectives": [
+          "Master Classful vs Classless IPv4 CIDR addressing",
+          "Calculate subnets, hosts, and range boundaries",
+          "Understand Network Address Translation (NAT) and IPv6 architectures"
+        ],
+        "recommendedPyqs": 12
+      },
+      {
+        "name": "Transport Layer TCP and UDP",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/tcp-connection-establishment-in-computer-network/",
+        "learningObjectives": [
+          "Understand TCP 3-way handshake and connection teardown",
+          "Master TCP Congestion Control: slow start, congestion avoidance, fast retransmit, fast recovery",
+          "Analyze TCP window sizes, flow control, and UDP sockets"
+        ],
+        "recommendedPyqs": 13
+      },
+      {
+        "name": "Application Layer Protocols",
+        "estimatedHours": 6,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/application-layer-protocols-in-computer-network/",
+        "learningObjectives": [
+          "Understand DNS query flows (iterative vs recursive)",
+          "Master SMTP, HTTP (persistent vs non-persistent), FTP, and DHCP",
+          "Analyze network port allocations"
+        ],
+        "recommendedPyqs": 6
+      }
+    ]
+  },
+  {
+    "subject": "Discrete Mathematics",
+    "weightage": 8,
+    "difficulty": "Advanced",
+    "topics": [
+      {
+        "name": "Propositional and First-Order Logic",
+        "estimatedHours": 8,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/propositional-logic/",
+        "learningObjectives": [
+          "Evaluate logical truth tables, tautologies, and contradictions",
+          "Master first-order logic quantifiers and translations",
+          "Apply rules of inference and logical deductions"
+        ],
+        "recommendedPyqs": 12
+      },
+      {
+        "name": "Sets, Relations, and Functions",
+        "estimatedHours": 8,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/sets-relations-and-functions/",
+        "learningObjectives": [
+          "Analyze equivalence relations and partition mappings",
+          "Understand partial orders, Posets, Hasse diagrams, and Lattices",
+          "Solve functions: one-to-one, onto, composition, inverse counts"
+        ],
+        "recommendedPyqs": 10
+      },
+      {
+        "name": "Group Theory",
+        "estimatedHours": 7,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/algebraic-structures-in-discrete-mathematics/",
+        "learningObjectives": [
+          "Identify Monoids, Semigroups, Groups, and Abelian groups",
+          "Calculate subgroup structures and Lagrange's theorem partitions",
+          "Determine cyclic groups and generators"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Combinatorics and Recurrence Relations",
+        "estimatedHours": 9,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/permutations-and-combinations/",
+        "learningObjectives": [
+          "Apply pigeonhole principle and inclusion-exclusion",
+          "Solve linear recurrence relations with boundary states",
+          "Generate sequences using Generating Functions"
+        ],
+        "recommendedPyqs": 11
+      },
+      {
+        "name": "Discrete Graph Theory",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/graph-theory-basics/",
+        "learningObjectives": [
+          "Calculate graph degrees, handshaking lemma paths",
+          "Master planar graphs, Euler's formula, chromatic coloring counts",
+          "Understand Eulerian, Hamiltonian trails, matching, and vertex covers"
+        ],
+        "recommendedPyqs": 13
+      }
+    ]
+  },
+  {
+    "subject": "Engineering Mathematics",
+    "weightage": 6,
+    "difficulty": "Intermediate",
+    "topics": [
+      {
+        "name": "Linear Algebra",
+        "estimatedHours": 8,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/linear-algebra-matrices/",
+        "learningObjectives": [
+          "Calculate determinants, matrix rank, and inverse systems",
+          "Solve systems of linear equations (consistent vs inconsistent)",
+          "Find eigenvalues, eigenvectors, and run LU decomposition"
+        ],
+        "recommendedPyqs": 10
+      },
+      {
+        "name": "Calculus",
+        "estimatedHours": 8,
+        "difficulty": "Intermediate",
+        "resourceLink": "https://www.geeksforgeeks.org/calculus-in-engineering-mathematics/",
+        "learningObjectives": [
+          "Solve limits, continuity, and differentiability",
+          "Apply Mean Value Theorems: Rolle's, Lagrange's, Cauchy's",
+          "Evaluate maxima, minima, single, and double integrals"
+        ],
+        "recommendedPyqs": 9
+      },
+      {
+        "name": "Probability and Statistics",
+        "estimatedHours": 10,
+        "difficulty": "Advanced",
+        "resourceLink": "https://www.geeksforgeeks.org/probability-in-engineering-mathematics/",
+        "learningObjectives": [
+          "Apply conditional probability and Bayes' Theorem",
+          "Master random variables, expectation, variance",
+          "Calculate probability distributions: Normal, Exponential, Binomial, Poisson"
+        ],
+        "recommendedPyqs": 12
+      }
+    ]
+  },
+  {
+    "subject": "General Aptitude",
+    "weightage": 15,
+    "difficulty": "Beginner",
+    "topics": [
+      {
+        "name": "Quantitative Aptitude",
+        "estimatedHours": 12,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/quantitative-aptitude-gfq/",
+        "learningObjectives": [
+          "Calculate time and work, time-speed-distance",
+          "Solve percentages, ratios, averages, profit & loss",
+          "Evaluate permutations, combinations, and basic geometry in aptitude"
+        ],
+        "recommendedPyqs": 15
+      },
+      {
+        "name": "Verbal Aptitude",
+        "estimatedHours": 6,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/english-grammar-for-gate-exam/",
+        "learningObjectives": [
+          "Master English grammar, vocabulary, synonyms, antonyms",
+          "Understand sentence completion and logical relationships",
+          "Solve reading comprehension and word usage"
+        ],
+        "recommendedPyqs": 8
+      },
+      {
+        "name": "Logical and Spatial Aptitude",
+        "estimatedHours": 6,
+        "difficulty": "Beginner",
+        "resourceLink": "https://www.geeksforgeeks.org/logical-reasoning/",
+        "learningObjectives": [
+          "Master pattern recognition, series, calendars, clocks",
+          "Solve Venn Diagrams and syllogisms",
+          "Understand spatial folding, rotating, and scaling shapes"
+        ],
+        "recommendedPyqs": 8
+      }
+    ]
+  }
+]

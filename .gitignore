@@ -1,0 +1,22 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+dist-ssr/
+*.log
+*.local
+.qodo/
+
+# Local databases and generated runtime state
+*.db
+backend/sqlite.db
+
+# Temporary scrape/debug artifacts
+landing_next_data.json
+next_data_scraped.json
+pageProps_debug.json
+inspect_chapters.js
+parse_next_data.js
+query_api.js
+simulate_onboarding.js

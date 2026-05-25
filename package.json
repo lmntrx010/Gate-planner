@@ -1,0 +1,8 @@
+{
+  "name": "gate-planner",
+  "version": "1.0.0",
+  "description": "Workspace root for the GATE CS/IT Hinglish Study Planner",
+  "scripts": {
+    "start": "node start.js"
+  }
+}
