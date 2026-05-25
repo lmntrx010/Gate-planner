@@ -350,6 +350,18 @@ export function AppProvider({ children }) {
     }
   };
 
+  const fetchCalendarSuggestions = async (date, days = 7) => {
+    if (!userToken) return [];
+    try {
+      const res = await authFetch(`${API_BASE}/calendar/suggestions?date=${encodeURIComponent(date)}&days=${days}`);
+      const data = await res.json();
+      return data.days || [];
+    } catch (err) {
+      console.error('Failed to fetch calendar suggestions:', err);
+      return [];
+    }
+  };
+
   const addCalendarTask = async (payload) => {
     if (!userToken) return;
     try {
@@ -453,6 +465,7 @@ export function AppProvider({ children }) {
       adaptiveReschedule,
       dragReschedule,
       fetchLearningItems,
+      fetchCalendarSuggestions,
       addCalendarTask,
       logTaskTime,
       rebuildPhasePlan,

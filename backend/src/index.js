@@ -1582,6 +1582,137 @@ app.post('/api/learning-items', async (req, res) => {
   }
 });
 
+app.get('/api/calendar/suggestions', async (req, res) => {
+  const userId = getAuthUser(req);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
+
+  const startDate = req.query.date || new Date().toISOString().split('T')[0];
+  const days = Math.min(14, Math.max(1, parseInt(req.query.days || '7', 10)));
+  const subjectPriority = [
+    'Algorithm',
+    'Data Structure',
+    'Discrete Mathematics',
+    'DBMS',
+    'C Programming',
+    'Engineering Mathematics',
+    'Operating System',
+    'Computer Networks'
+  ];
+
+  try {
+    const profile = await dbGet('SELECT weekday_hours, weekend_hours FROM user_profile WHERE user_id = ?', [userId]);
+    const weekdayMinutes = Math.max(60, Math.round(parseFloat(profile?.weekday_hours || 3) * 60));
+    const weekendMinutes = Math.max(60, Math.round(parseFloat(profile?.weekend_hours || 6) * 60));
+    const { subjects, topics } = await getCatalogMaps();
+    const subjectById = new Map(subjects.map(subject => [subject.id, subject]));
+    const topicById = new Map(topics.map(topic => [topic.id, topic]));
+
+    const existing = await dbAll(
+      `SELECT date, topic_id, learning_item_id, planned_minutes, duration, completed
+       FROM study_plan
+       WHERE user_id = ? AND date >= ?`,
+      [userId, startDate]
+    );
+    const completedProgress = await dbAll(
+      `SELECT topic_id, learning_item_id
+       FROM topic_progress
+       WHERE user_id = ? AND status IN ('completed', 'skimmed')`,
+      [userId]
+    );
+
+    const scheduledTopicIds = new Set(existing.map(row => row.topic_id).filter(Boolean));
+    const scheduledItemIds = new Set(existing.map(row => row.learning_item_id).filter(Boolean));
+    const completedTopicIds = new Set(completedProgress.map(row => row.topic_id).filter(Boolean));
+    const completedItemIds = new Set(completedProgress.map(row => row.learning_item_id).filter(Boolean));
+    const plannedByDate = new Map();
+    existing.forEach(row => {
+      const minutes = row.planned_minutes || Math.round((row.duration || 0) * 60);
+      plannedByDate.set(row.date, (plannedByDate.get(row.date) || 0) + minutes);
+    });
+
+    const learningItems = await dbAll('SELECT * FROM learning_items ORDER BY subject_id ASC, sequence ASC');
+    const candidates = [];
+
+    learningItems.forEach(item => {
+      if (scheduledItemIds.has(item.id) || completedItemIds.has(item.id)) return;
+      const subject = subjectById.get(item.subject_id);
+      const topic = topicById.get(item.topic_id);
+      if (!subject) return;
+      candidates.push({
+        subjectId: subject.id,
+        subject: subject.name,
+        topicId: item.topic_id || '',
+        learningItemId: item.id,
+        title: item.title,
+        source: 'video',
+        mode: item.category?.toLowerCase().includes('pyq') ? 'pyq' : 'full',
+        plannedMinutes: item.duration_minutes || 60,
+        topicName: topic?.name || item.category || 'Video Lesson'
+      });
+    });
+
+    topics.forEach(topic => {
+      if (scheduledTopicIds.has(topic.id) || completedTopicIds.has(topic.id)) return;
+      const subject = subjectById.get(topic.subject_id);
+      if (!subject) return;
+      candidates.push({
+        subjectId: subject.id,
+        subject: subject.name,
+        topicId: topic.id,
+        learningItemId: '',
+        title: topic.name,
+        source: 'topic',
+        mode: 'full',
+        plannedMinutes: Math.max(45, (topic.estimated_hours || 1) * 60),
+        topicName: topic.name
+      });
+    });
+
+    candidates.sort((a, b) => {
+      const rankA = subjectPriority.findIndex(name => name.toLowerCase() === a.subject.toLowerCase());
+      const rankB = subjectPriority.findIndex(name => name.toLowerCase() === b.subject.toLowerCase());
+      if (rankA !== rankB) return (rankA === -1 ? 99 : rankA) - (rankB === -1 ? 99 : rankB);
+      if (a.subject !== b.subject) return a.subject.localeCompare(b.subject);
+      return a.title.localeCompare(b.title);
+    });
+
+    const usedCandidateKeys = new Set();
+    const results = [];
+
+    for (let offset = 0; offset < days; offset++) {
+      const date = addDays(startDate, offset);
+      const capacity = isWeekendDate(date) ? weekendMinutes : weekdayMinutes;
+      const planned = plannedByDate.get(date) || 0;
+      const remainingMinutes = Math.max(0, capacity - planned);
+      const suggestions = [];
+
+      for (const candidate of candidates) {
+        const key = candidate.learningItemId || candidate.topicId;
+        if (!key || usedCandidateKeys.has(key)) continue;
+        suggestions.push({
+          ...candidate,
+          date,
+          fitsToday: candidate.plannedMinutes <= Math.max(remainingMinutes, 15)
+        });
+        usedCandidateKeys.add(key);
+        if (suggestions.length >= 4) break;
+      }
+
+      results.push({
+        date,
+        capacityMinutes: capacity,
+        plannedMinutes: planned,
+        remainingMinutes,
+        suggestions
+      });
+    }
+
+    res.json({ days: results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/calendar/add-task', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });

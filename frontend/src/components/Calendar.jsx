@@ -12,6 +12,7 @@ export default function Calendar({ onSelectTopic }) {
     dragReschedule,
     adaptiveReschedule,
     fetchLearningItems,
+    fetchCalendarSuggestions,
     addCalendarTask,
     logTaskTime,
     rebuildPhasePlan
@@ -24,6 +25,7 @@ export default function Calendar({ onSelectTopic }) {
   const [addDraft, setAddDraft] = useState(null);
   const [subjectTopics, setSubjectTopics] = useState([]);
   const [learningItems, setLearningItems] = useState([]);
+  const [calendarSuggestions, setCalendarSuggestions] = useState([]);
   const [logDraft, setLogDraft] = useState(null);
   const [phaseTargetDate, setPhaseTargetDate] = useState('2027-02-06');
   const [planningDraft, setPlanningDraft] = useState(null);
@@ -111,6 +113,7 @@ export default function Calendar({ onSelectTopic }) {
 
   const openAddDraft = async (date) => {
     const firstSubjectId = subjects[0]?.id || '';
+    setCalendarSuggestions(await fetchCalendarSuggestions(date, 7));
     setAddDraft({
       date,
       subjectId: firstSubjectId,
@@ -122,6 +125,21 @@ export default function Calendar({ onSelectTopic }) {
       title: ''
     });
     if (firstSubjectId) await loadSubjectOptions(firstSubjectId);
+  };
+
+  const applySuggestion = async (suggestion) => {
+    await loadSubjectOptions(suggestion.subjectId);
+    setAddDraft(prev => ({
+      ...prev,
+      date: suggestion.date,
+      subjectId: suggestion.subjectId,
+      source: suggestion.source,
+      topicId: suggestion.topicId || '',
+      learningItemId: suggestion.learningItemId || '',
+      mode: suggestion.mode || 'full',
+      plannedMinutes: suggestion.plannedMinutes || 60,
+      title: suggestion.source === 'custom' ? suggestion.title : ''
+    }));
   };
 
   const submitAddDraft = async () => {
@@ -566,6 +584,37 @@ export default function Calendar({ onSelectTopic }) {
               <h3 className="text-lg font-extrabold text-white">Add Topic To {addDraft.date}</h3>
               <button onClick={() => setAddDraft(null)} className="p-2 text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
             </div>
+
+            {calendarSuggestions.length > 0 && (
+              <div className="rounded-xl border border-gray-800 bg-gray-950/70 p-3 space-y-3 max-h-60 overflow-y-auto">
+                <div className="text-[10px] font-black uppercase tracking-widest text-cyber-emerald">Suggested Next Topics</div>
+                {calendarSuggestions.map(day => (
+                  <div key={day.date} className="space-y-2">
+                    <div className="flex items-center justify-between text-[10px] text-gray-500 font-bold">
+                      <span>{day.date}</span>
+                      <span>{Math.round(day.remainingMinutes / 60 * 10) / 10}h free</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {day.suggestions.map(suggestion => (
+                        <button
+                          key={`${day.date}_${suggestion.learningItemId || suggestion.topicId}`}
+                          type="button"
+                          onClick={() => applySuggestion(suggestion)}
+                          className="text-left rounded-lg border border-gray-800 bg-gray-900/70 p-2 hover:border-cyber-primary transition"
+                        >
+                          <div className="text-[9px] text-cyber-primary font-black uppercase tracking-wider">{suggestion.subject}</div>
+                          <div className="text-xs text-white font-bold line-clamp-2 mt-1">{suggestion.title}</div>
+                          <div className="mt-1 text-[10px] text-gray-500">
+                            {Math.round((suggestion.plannedMinutes || 0) / 60 * 10) / 10}h · {suggestion.source}
+                            {!suggestion.fitsToday && <span className="text-cyber-gold"> · split later</span>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
