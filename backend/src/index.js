@@ -775,6 +775,161 @@ async function upsertTopicProgress(userId, task, status, mode) {
   );
 }
 
+async function getNextUnfinishedCandidate(userId) {
+  const { subjects, topics } = await getCatalogMaps();
+  const subjectById = new Map(subjects.map(subject => [subject.id, subject]));
+  const topicById = new Map(topics.map(topic => [topic.id, topic]));
+  const existing = await dbAll('SELECT topic_id, learning_item_id FROM study_plan WHERE user_id = ?', [userId]);
+  const progress = await dbAll(
+    `SELECT topic_id, learning_item_id FROM topic_progress
+     WHERE user_id = ? AND status IN ('completed', 'skimmed')`,
+    [userId]
+  );
+  const scheduledTopicIds = new Set(existing.map(row => row.topic_id).filter(Boolean));
+  const scheduledItemIds = new Set(existing.map(row => row.learning_item_id).filter(Boolean));
+  const completedTopicIds = new Set(progress.map(row => row.topic_id).filter(Boolean));
+  const completedItemIds = new Set(progress.map(row => row.learning_item_id).filter(Boolean));
+  const subjectPriority = ['Algorithm', 'Data Structure', 'Discrete Mathematics', 'DBMS', 'C Programming', 'Engineering Mathematics', 'Operating System', 'Computer Networks'];
+  const candidates = [];
+
+  const learningItems = await dbAll('SELECT * FROM learning_items ORDER BY subject_id ASC, sequence ASC');
+  learningItems.forEach(item => {
+    if (scheduledItemIds.has(item.id) || completedItemIds.has(item.id)) return;
+    const subject = subjectById.get(item.subject_id);
+    if (!subject) return;
+    candidates.push({
+      subject: subject.name,
+      topicName: item.title,
+      topicId: item.topic_id || '',
+      learningItemId: item.id,
+      plannedMinutes: item.duration_minutes || 60,
+      type: item.category?.toLowerCase().includes('pyq') ? 'pyq' : 'study',
+      mode: item.category?.toLowerCase().includes('pyq') ? 'pyq' : 'full',
+      source: 'video',
+      description: `${item.provider} - ${item.category || 'Video Lesson'}`
+    });
+  });
+
+  topics.forEach(topic => {
+    if (scheduledTopicIds.has(topic.id) || completedTopicIds.has(topic.id)) return;
+    const subject = subjectById.get(topic.subject_id);
+    if (!subject) return;
+    candidates.push({
+      subject: subject.name,
+      topicName: topic.name,
+      topicId: topic.id,
+      learningItemId: '',
+      plannedMinutes: Math.max(45, (topic.estimated_hours || 1) * 60),
+      type: 'study',
+      mode: 'full',
+      source: 'catalog',
+      difficulty: topic.difficulty,
+      resourceLink: topic.resource_link || '',
+      learningObjectives: JSON.parse(topic.learning_objectives || '[]'),
+      recommendedPyqs: topic.recommended_pyqs || 0,
+      description: `Auto-filled because you completed another planned topic early.`
+    });
+  });
+
+  candidates.sort((a, b) => {
+    const rankA = subjectPriority.findIndex(name => name.toLowerCase() === a.subject.toLowerCase());
+    const rankB = subjectPriority.findIndex(name => name.toLowerCase() === b.subject.toLowerCase());
+    if (rankA !== rankB) return (rankA === -1 ? 99 : rankA) - (rankB === -1 ? 99 : rankB);
+    if (a.subject !== b.subject) return a.subject.localeCompare(b.subject);
+    return a.topicName.localeCompare(b.topicName);
+  });
+
+  return candidates[0] || null;
+}
+
+async function refillDateWithNextTopic(userId, date, preferredMinutes = 60, phaseId = '') {
+  const profile = await dbGet('SELECT weekday_hours, weekend_hours FROM user_profile WHERE user_id = ?', [userId]);
+  const capacity = isWeekendDate(date)
+    ? Math.max(60, Math.round(parseFloat(profile?.weekend_hours || 6) * 60))
+    : Math.max(60, Math.round(parseFloat(profile?.weekday_hours || 3) * 60));
+  const rows = await dbAll('SELECT planned_minutes, duration FROM study_plan WHERE user_id = ? AND date = ? AND completed = 0', [userId, date]);
+  const planned = rows.reduce((sum, row) => sum + (row.planned_minutes || Math.round((row.duration || 0) * 60)), 0);
+  const available = Math.max(0, capacity - planned);
+  const minutes = Math.max(15, Math.min(preferredMinutes || available || 60, available || preferredMinutes || 60));
+  if (minutes < 15) return null;
+
+  const candidate = await getNextUnfinishedCandidate(userId);
+  if (!candidate) return null;
+
+  return insertStudyTask(userId, date, {
+    ...candidate,
+    phaseId,
+    plannedMinutes: Math.min(candidate.plannedMinutes || minutes, minutes),
+    topicName: (candidate.plannedMinutes || minutes) > minutes
+      ? `${candidate.topicName} (auto-fill part)`
+      : candidate.topicName
+  });
+}
+
+async function removeFutureDuplicatesAndRefill(userId, task, completedDate, originalDate) {
+  const topicId = task.topic_id || task.topicId || '';
+  const learningItemId = task.learning_item_id || task.learningItemId || '';
+  if (!topicId && !learningItemId) return [];
+
+  const conditions = [];
+  const params = [userId, completedDate, task.id || ''];
+  if (topicId) {
+    conditions.push('topic_id = ?');
+    params.push(topicId);
+  }
+  if (learningItemId) {
+    conditions.push('learning_item_id = ?');
+    params.push(learningItemId);
+  }
+
+  const duplicateRows = await dbAll(
+    `SELECT * FROM study_plan
+     WHERE user_id = ?
+       AND completed = 0
+       AND date >= ?
+       AND id <> ?
+       AND (${conditions.join(' OR ')})`,
+    params
+  );
+  const refillTargets = [];
+
+  if (originalDate && originalDate > completedDate) {
+    refillTargets.push({
+      date: originalDate,
+      minutes: task.planned_minutes || Math.round((task.duration || 1) * 60),
+      phaseId: task.phase_id || ''
+    });
+  }
+
+  for (const duplicate of duplicateRows) {
+    refillTargets.push({
+      date: duplicate.date,
+      minutes: duplicate.planned_minutes || Math.round((duplicate.duration || 1) * 60),
+      phaseId: duplicate.phase_id || ''
+    });
+  }
+
+  if (duplicateRows.length > 0) {
+    await dbRun(
+      `DELETE FROM study_plan
+       WHERE user_id = ?
+         AND completed = 0
+         AND date >= ?
+         AND id <> ?
+         AND (${conditions.join(' OR ')})`,
+      params
+    );
+  }
+
+  const refilled = [];
+  for (const target of refillTargets) {
+    const id = await refillDateWithNextTopic(userId, target.date, target.minutes, target.phaseId);
+    if (id) refilled.push({ date: target.date, taskId: id });
+  }
+
+  return refilled;
+}
+
 async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
   const startDate = '2026-05-25';
   const endDate = '2026-07-10';
@@ -1356,14 +1511,17 @@ app.post('/api/calendar/toggle-complete', async (req, res) => {
     const finishDate = completedDate || new Date().toISOString().split('T')[0];
     const task = await dbGet('SELECT * FROM study_plan WHERE id = ? AND user_id = ?', [taskId, userId]);
     if (!task) return res.status(404).json({ error: 'Task not found.' });
+    let refilled = [];
 
     if (completed) {
+      const originalDate = task.date;
       const minutes = actualMinutes || task.actual_minutes || task.planned_minutes || Math.round((task.duration || 0) * 60);
       await dbRun(
         'UPDATE study_plan SET completed = ?, completed_at = ?, date = ?, status = ?, mode = ?, actual_minutes = ? WHERE id = ? AND user_id = ?',
         [1, finishDate, finishDate, mode === 'skim' ? 'skimmed' : 'completed', mode || task.mode || 'full', minutes, taskId, userId]
       );
       await upsertTopicProgress(userId, task, mode === 'skim' ? 'skimmed' : 'completed', mode || task.mode || 'full');
+      refilled = await removeFutureDuplicatesAndRefill(userId, task, finishDate, originalDate);
 
       const profile = await dbGet('SELECT completed_topics FROM user_profile WHERE user_id = ?', [userId]);
       if (profile && task.task_type === 'study') {
@@ -1402,7 +1560,7 @@ app.post('/api/calendar/toggle-complete', async (req, res) => {
       await dbRun('UPDATE user_profile SET streak_count = ?, last_active_date = ? WHERE user_id = ?', [currentStreak, todayStr, userId]);
     }
 
-    res.json({ success: true, streak: currentStreak });
+    res.json({ success: true, streak: currentStreak, refilled });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1717,7 +1875,7 @@ app.post('/api/calendar/add-task', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
 
-  const { date, subjectId, topicId, learningItemId, mode = 'full', plannedMinutes, title } = req.body;
+  const { date, subjectId, topicId, learningItemId, mode = 'full', plannedMinutes, title, markComplete = false, actualMinutes } = req.body;
   if (!date || !subjectId) {
     return res.status(400).json({ error: 'date and subjectId are required.' });
   }
@@ -1730,7 +1888,7 @@ app.post('/api/calendar/add-task', async (req, res) => {
     const item = learningItemId ? await dbGet('SELECT * FROM learning_items WHERE id = ?', [learningItemId]) : null;
     const baseMinutes = parseInt(plannedMinutes || item?.duration_minutes || ((topic?.estimated_hours || 1) * 60) || 60);
     const finalMinutes = plannedMinutesForMode(baseMinutes, mode);
-    const taskId = await insertStudyTask(userId, date, {
+    const taskPayload = {
       phaseId: date <= '2026-07-10' ? `${userId}_nitc_phase1` : `${userId}_phase2`,
       topicId: topic?.id || item?.topic_id || '',
       learningItemId: item?.id || '',
@@ -1742,9 +1900,30 @@ app.post('/api/calendar/add-task', async (req, res) => {
       source: item ? 'video' : 'manual',
       difficulty: topic?.difficulty || '',
       resourceLink: topic?.resource_link || item?.source_url || '',
-      description: item ? `${item.provider} - ${item.category}` : `Manually added ${mode} task.`
-    });
-    res.json({ success: true, taskId });
+      description: item ? `${item.provider} - ${item.category}` : `Manually added ${mode} task.`,
+      status: markComplete ? (mode === 'skim' ? 'skimmed' : 'completed') : 'planned',
+      actualMinutes: markComplete ? parseInt(actualMinutes || finalMinutes) : 0,
+      completedAt: markComplete ? date : null,
+      completed: markComplete
+    };
+    const taskId = await insertStudyTask(userId, date, taskPayload);
+    let refilled = [];
+
+    if (markComplete) {
+      const insertedTask = {
+        id: taskId,
+        phase_id: taskPayload.phaseId,
+        topic_id: taskPayload.topicId,
+        learning_item_id: taskPayload.learningItemId,
+        topic_name: taskPayload.topicName,
+        duration: finalMinutes / 60,
+        planned_minutes: finalMinutes
+      };
+      await upsertTopicProgress(userId, insertedTask, mode === 'skim' ? 'skimmed' : 'completed', mode || 'full');
+      refilled = await removeFutureDuplicatesAndRefill(userId, insertedTask, date, date);
+    }
+
+    res.json({ success: true, taskId, refilled });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

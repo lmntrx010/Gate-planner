@@ -122,7 +122,8 @@ export default function Calendar({ onSelectTopic }) {
       learningItemId: '',
       mode: 'full',
       plannedMinutes: 60,
-      title: ''
+      title: '',
+      markComplete: false
     });
     if (firstSubjectId) await loadSubjectOptions(firstSubjectId);
   };
@@ -138,7 +139,8 @@ export default function Calendar({ onSelectTopic }) {
       learningItemId: suggestion.learningItemId || '',
       mode: suggestion.mode || 'full',
       plannedMinutes: suggestion.plannedMinutes || 60,
-      title: suggestion.source === 'custom' ? suggestion.title : ''
+      title: suggestion.source === 'custom' ? suggestion.title : '',
+      markComplete: false
     }));
   };
 
@@ -708,6 +710,22 @@ export default function Calendar({ onSelectTopic }) {
                 />
               </div>
             </div>
+
+            <label className="flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-950/70 p-3 text-sm text-gray-300">
+              <input
+                type="checkbox"
+                checked={Boolean(addDraft.markComplete)}
+                onChange={(e) => setAddDraft(prev => ({ ...prev, markComplete: e.target.checked }))}
+                className="accent-cyber-emerald"
+              />
+              Already completed this on {addDraft.date}
+            </label>
+
+            {addDraft.markComplete && (
+              <p className="text-[11px] text-gray-500">
+                If this topic appears later in the calendar, that future copy will be replaced with the next unfinished topic automatically.
+              </p>
+            )}
 
             <button
               type="button"
