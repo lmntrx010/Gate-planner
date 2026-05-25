@@ -26,6 +26,7 @@ export default function Calendar({ onSelectTopic }) {
   const [learningItems, setLearningItems] = useState([]);
   const [logDraft, setLogDraft] = useState(null);
   const [phaseTargetDate, setPhaseTargetDate] = useState('2027-02-06');
+  const [planningDraft, setPlanningDraft] = useState(null);
 
   // Group task lists into blocks of 7 days (weeks) for easy navigation
   const weeks = [];
@@ -141,6 +142,46 @@ export default function Calendar({ onSelectTopic }) {
     setCompletionDraft(null);
   };
 
+  const openPlanningDraft = (phase) => {
+    const names = subjects.map(subject => subject.name);
+    setPlanningDraft({
+      phase,
+      targetDate: phaseTargetDate,
+      strategy: 'sequential',
+      primarySubject: names[0] || '',
+      secondarySubject: names[1] || names[0] || '',
+      weekdayHours: 3,
+      weekendHours: 6
+    });
+  };
+
+  const submitPlanningDraft = async () => {
+    if (!planningDraft) return;
+    const priority = [
+      planningDraft.primarySubject,
+      planningDraft.secondarySubject,
+      ...subjects.map(subject => subject.name)
+    ].filter(Boolean);
+    const uniquePriority = [...new Set(priority)];
+    const planningOptions = {
+      strategy: planningDraft.strategy,
+      maxSubjectsPerDay: planningDraft.strategy === 'parallel' ? 2 : 1,
+      parallelSubjects: planningDraft.strategy === 'parallel'
+        ? [planningDraft.primarySubject, planningDraft.secondarySubject].filter(Boolean)
+        : [],
+      subjectPriority: uniquePriority,
+      weekdayMinutes: Math.round(Number(planningDraft.weekdayHours || 3) * 60),
+      weekendMinutes: Math.round(Number(planningDraft.weekendHours || 6) * 60)
+    };
+
+    await rebuildPhasePlan({
+      phase: planningDraft.phase,
+      targetDate: planningDraft.phase === 'phase2' ? planningDraft.targetDate : undefined,
+      planningOptions
+    });
+    setPlanningDraft(null);
+  };
+
   const toggleTaskButton = (e, task, scheduledDate) => {
     e.stopPropagation();
     if (task.completed) {
@@ -212,7 +253,7 @@ export default function Calendar({ onSelectTopic }) {
           </button>
 
           <button
-            onClick={() => rebuildPhasePlan({ phase: 'nitc_phase1' })}
+            onClick={() => openPlanningDraft('nitc_phase1')}
             className="flex items-center gap-2 py-2 px-4 rounded-lg bg-cyber-emerald/10 border border-cyber-emerald/30 text-cyber-emerald text-xs font-semibold hover:bg-cyber-emerald/25 transition-all shadow-glow-emerald duration-300"
           >
             <Award className="w-3.5 h-3.5" /> NITC Phase 1
@@ -226,7 +267,7 @@ export default function Calendar({ onSelectTopic }) {
               className="bg-gray-950 border border-gray-800 rounded-lg px-2 py-2 text-xs text-gray-300"
             />
             <button
-              onClick={() => rebuildPhasePlan({ phase: 'phase2', targetDate: phaseTargetDate })}
+              onClick={() => openPlanningDraft('phase2')}
               className="flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-950 border border-gray-800 text-gray-300 text-xs font-semibold hover:border-cyber-primary transition"
             >
               Compile Remaining
@@ -664,6 +705,118 @@ export default function Calendar({ onSelectTopic }) {
               className="w-full py-3 rounded-lg bg-cyber-emerald hover:bg-emerald-600 text-white font-bold"
             >
               Save Time Log
+            </button>
+          </div>
+        </div>
+      )}
+
+      {planningDraft && (
+        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl glass-panel border border-cyber-emerald/30 rounded-xl p-5 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-[10px] text-cyber-emerald font-black uppercase tracking-widest">
+                  {planningDraft.phase === 'nitc_phase1' ? 'NITC Phase 1 Planner' : 'Remaining Plan Planner'}
+                </div>
+                <h3 className="text-lg font-extrabold text-white mt-1">Choose Study Flow</h3>
+              </div>
+              <button onClick={() => setPlanningDraft(null)} className="p-2 text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Weekday Hours</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="0.5"
+                  value={planningDraft.weekdayHours}
+                  onChange={(e) => setPlanningDraft(prev => ({ ...prev, weekdayHours: e.target.value }))}
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Weekend Hours</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="0.5"
+                  value={planningDraft.weekendHours}
+                  onChange={(e) => setPlanningDraft(prev => ({ ...prev, weekendHours: e.target.value }))}
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Daily Flow</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  ['sequential', 'One subject/day'],
+                  ['parallel', 'Two subjects/day']
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPlanningDraft(prev => ({ ...prev, strategy: value }))}
+                    className={`py-3 rounded-lg border text-sm font-bold transition ${
+                      planningDraft.strategy === value
+                        ? 'border-cyber-emerald bg-cyber-emerald/15 text-cyber-emerald'
+                        : 'border-gray-800 bg-gray-950 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Start With</label>
+                <select
+                  value={planningDraft.primarySubject}
+                  onChange={(e) => setPlanningDraft(prev => ({ ...prev, primarySubject: e.target.value }))}
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white"
+                >
+                  {subjects.map(subject => <option key={subject.id} value={subject.name}>{subject.name}</option>)}
+                </select>
+              </div>
+              <div className={planningDraft.strategy === 'parallel' ? '' : 'opacity-50'}>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Parallel With</label>
+                <select
+                  value={planningDraft.secondarySubject}
+                  disabled={planningDraft.strategy !== 'parallel'}
+                  onChange={(e) => setPlanningDraft(prev => ({ ...prev, secondarySubject: e.target.value }))}
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white disabled:cursor-not-allowed"
+                >
+                  {subjects.map(subject => <option key={subject.id} value={subject.name}>{subject.name}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {planningDraft.phase === 'phase2' && (
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Target Date</label>
+                <input
+                  type="date"
+                  value={planningDraft.targetDate}
+                  onChange={(e) => setPlanningDraft(prev => ({ ...prev, targetDate: e.target.value }))}
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white"
+                />
+              </div>
+            )}
+
+            <div className="rounded-lg border border-gray-800 bg-gray-950/60 p-3 text-xs text-gray-400">
+              Auto-planning will cap generated work at {planningDraft.weekdayHours || 3}h on weekdays and {planningDraft.weekendHours || 6}h on weekends. Manual extra topics and logged extra time will still stay.
+            </div>
+
+            <button
+              type="button"
+              onClick={submitPlanningDraft}
+              className="w-full py-3 rounded-lg bg-cyber-emerald hover:bg-emerald-600 text-white font-bold"
+            >
+              Generate Plan
             </button>
           </div>
         </div>

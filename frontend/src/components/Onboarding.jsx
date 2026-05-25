@@ -43,6 +43,11 @@ export default function Onboarding() {
     selectedSubjects: [],
     subjectPlans: [],
     selectedTopics: [],
+    planningOptions: {
+      strategy: 'sequential',
+      primarySubject: '',
+      secondarySubject: ''
+    },
     weakSubjects: [],
     breakPreference: 'pomodoro',
     userType: 'student'
@@ -247,11 +252,28 @@ export default function Onboarding() {
 
   const buildSelectedTopics = () => formData.subjectPlans.flatMap(plan => plan.topics);
 
+  const buildPlanningOptions = () => {
+    const subjectNames = formData.selectedSubjects.map(subject => subject.name);
+    const primary = formData.planningOptions.primarySubject || subjectNames[0] || '';
+    const secondary = formData.planningOptions.secondarySubject || subjectNames.find(name => name !== primary) || '';
+    const priority = [...new Set([primary, secondary, ...subjectNames].filter(Boolean))];
+
+    return {
+      strategy: formData.planningOptions.strategy || 'sequential',
+      maxSubjectsPerDay: formData.planningOptions.strategy === 'parallel' ? 2 : 1,
+      parallelSubjects: formData.planningOptions.strategy === 'parallel' ? [primary, secondary].filter(Boolean) : [],
+      subjectPriority: priority,
+      weekdayMinutes: Math.round(Number(formData.weekdayHours || 3) * 60),
+      weekendMinutes: Math.round(Number(formData.weekendHours || 6) * 60)
+    };
+  };
+
   const handleSubmit = async () => {
     setSubmitError('');
     const result = await submitOnboarding({
       ...formData,
-      selectedTopics: buildSelectedTopics()
+      selectedTopics: buildSelectedTopics(),
+      planningOptions: buildPlanningOptions()
     });
 
     if (!result?.success) {
@@ -681,6 +703,60 @@ export default function Onboarding() {
                 <span>Assessment Structure:</span>
                 <span className="font-bold">Mock tests ({formData.mockTestFrequency})</span>
               </div>
+            </div>
+
+            <div className="bg-gray-950 p-4 rounded-xl border border-gray-900 space-y-4">
+              <h3 className="text-sm font-bold text-white">Planning Flow</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  ['sequential', 'One subject/day'],
+                  ['parallel', 'Two subjects/day']
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      planningOptions: { ...prev.planningOptions, strategy: value }
+                    }))}
+                    className={`p-3 rounded-xl border text-sm font-bold transition ${
+                      formData.planningOptions.strategy === value
+                        ? 'bg-cyber-emerald/15 border-cyber-emerald text-cyber-emerald'
+                        : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <select
+                  value={formData.planningOptions.primarySubject || formData.selectedSubjects[0]?.name || ''}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    planningOptions: { ...prev.planningOptions, primarySubject: e.target.value }
+                  }))}
+                  className="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-white"
+                >
+                  {formData.selectedSubjects.map(subject => <option key={subject.id} value={subject.name}>Start: {subject.name}</option>)}
+                </select>
+                <select
+                  disabled={formData.planningOptions.strategy !== 'parallel'}
+                  value={formData.planningOptions.secondarySubject || formData.selectedSubjects.find(subject => subject.name !== formData.planningOptions.primarySubject)?.name || ''}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    planningOptions: { ...prev.planningOptions, secondarySubject: e.target.value }
+                  }))}
+                  className="w-full bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {formData.selectedSubjects.map(subject => <option key={subject.id} value={subject.name}>Parallel: {subject.name}</option>)}
+                </select>
+              </div>
+
+              <p className="text-xs text-gray-500">
+                Generated tasks stay within {formData.weekdayHours}h weekdays and {formData.weekendHours}h weekends. Extra manual work can still be added later.
+              </p>
             </div>
           </div>
         )}

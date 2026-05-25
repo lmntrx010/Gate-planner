@@ -538,16 +538,73 @@ async function insertStudyTask(userId, date, task) {
   return taskId;
 }
 
-async function scheduleQueueWithDailyCapacity({ userId, queue, phaseId, startDate, endDate, weekdayMinutes, weekendMinutes }) {
+function normalizePlanningOptions(options = {}, defaults = {}) {
+  const subjectPriority = Array.isArray(options.subjectPriority)
+    ? options.subjectPriority.filter(Boolean)
+    : [];
+  const parallelSubjects = Array.isArray(options.parallelSubjects)
+    ? options.parallelSubjects.filter(Boolean)
+    : [];
+  const strategy = options.strategy === 'parallel' ? 'parallel' : 'sequential';
+  const maxSubjectsPerDay = strategy === 'parallel'
+    ? Math.min(3, Math.max(2, parseInt(options.maxSubjectsPerDay || parallelSubjects.length || 2, 10)))
+    : 1;
+
+  return {
+    strategy,
+    subjectPriority,
+    parallelSubjects,
+    maxSubjectsPerDay,
+    weekdayMinutes: Math.max(60, parseInt(options.weekdayMinutes || defaults.weekdayMinutes || 180, 10)),
+    weekendMinutes: Math.max(60, parseInt(options.weekendMinutes || defaults.weekendMinutes || 360, 10))
+  };
+}
+
+function subjectRank(subject, planningOptions) {
+  const wanted = String(subject || '').toLowerCase();
+  const priority = [
+    ...(planningOptions.parallelSubjects || []),
+    ...(planningOptions.subjectPriority || [])
+  ];
+  const index = priority.findIndex(name => {
+    const value = String(name || '').toLowerCase();
+    return value === wanted || value.includes(wanted) || wanted.includes(value);
+  });
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+}
+
+function orderQueueBySubjectPreference(queue, planningOptions) {
+  return queue
+    .map((task, index) => ({ task, index }))
+    .sort((a, b) => {
+      const rankA = subjectRank(a.task.subject, planningOptions);
+      const rankB = subjectRank(b.task.subject, planningOptions);
+      if (rankA !== rankB) return rankA - rankB;
+      if (a.task.subject !== b.task.subject) return String(a.task.subject).localeCompare(String(b.task.subject));
+      return a.index - b.index;
+    })
+    .map(entry => entry.task);
+}
+
+async function scheduleTaskChunk({ userId, task, phaseId, date, chunk, totalParts, part }) {
+  const splitTitle = totalParts > 1
+    ? `${task.topicName} (${part}/${totalParts})`
+    : task.topicName;
+
+  await insertStudyTask(userId, date, {
+    ...task,
+    phaseId,
+    topicName: splitTitle,
+    plannedMinutes: chunk,
+    description: totalParts > 1
+      ? `${task.description || ''} Split automatically to respect daily study capacity.`.trim()
+      : task.description
+  });
+}
+
+async function scheduleSequentialQueue({ userId, queue, phaseId, slots, weekdayMinutes, weekendMinutes }) {
   let scheduled = 0;
   let overflow = 0;
-  const slots = [];
-  for (let cursor = startDate; cursor <= endDate; cursor = addDays(cursor, 1)) {
-    slots.push({
-      date: cursor,
-      remaining: isWeekendDate(cursor) ? weekendMinutes : weekdayMinutes
-    });
-  }
   let slotIndex = 0;
 
   for (const task of queue) {
@@ -569,19 +626,7 @@ async function scheduleQueueWithDailyCapacity({ userId, queue, phaseId, startDat
       }
 
       const chunk = Math.min(minutesLeft, slot.remaining);
-      const splitTitle = totalParts > 1
-        ? `${task.topicName} (${part}/${totalParts})`
-        : task.topicName;
-
-      await insertStudyTask(userId, slot.date, {
-        ...task,
-        phaseId,
-        topicName: splitTitle,
-        plannedMinutes: chunk,
-        description: totalParts > 1
-          ? `${task.description || ''} Split automatically to respect daily study capacity.`.trim()
-          : task.description
-      });
+      await scheduleTaskChunk({ userId, task, phaseId, date: slot.date, chunk, totalParts, part });
 
       scheduled += 1;
       minutesLeft -= chunk;
@@ -595,6 +640,123 @@ async function scheduleQueueWithDailyCapacity({ userId, queue, phaseId, startDat
   }
 
   return { scheduled, overflow };
+}
+
+async function scheduleParallelQueue({ userId, queue, phaseId, slots, planningOptions, weekdayMinutes, weekendMinutes }) {
+  let scheduled = 0;
+  let overflow = 0;
+  const maxDaily = Math.max(15, Math.max(weekdayMinutes, weekendMinutes));
+  const priority = [];
+  const queueBySubject = new Map();
+
+  for (const task of queue) {
+    if (!queueBySubject.has(task.subject)) {
+      queueBySubject.set(task.subject, []);
+      priority.push(task.subject);
+    }
+    queueBySubject.get(task.subject).push({
+      task: { ...task },
+      minutesLeft: Math.max(15, task.plannedMinutes || 60),
+      part: 1,
+      totalParts: Math.max(1, Math.ceil(Math.max(15, task.plannedMinutes || 60) / maxDaily))
+    });
+  }
+
+  priority.sort((a, b) => {
+    const rankA = subjectRank(a, planningOptions);
+    const rankB = subjectRank(b, planningOptions);
+    if (rankA !== rankB) return rankA - rankB;
+    return String(a).localeCompare(String(b));
+  });
+
+  for (const slot of slots) {
+    if ([...queueBySubject.values()].every(items => items.length === 0)) break;
+
+    const activeSubjects = priority
+      .filter(subject => (queueBySubject.get(subject) || []).length > 0)
+      .slice(0, planningOptions.maxSubjectsPerDay);
+
+    if (activeSubjects.length === 0) continue;
+
+    const baseShare = Math.floor(slot.remaining / activeSubjects.length);
+    const allocations = activeSubjects.map((subject, index) => ({
+      subject,
+      minutes: index === activeSubjects.length - 1
+        ? slot.remaining - (baseShare * (activeSubjects.length - 1))
+        : baseShare
+    }));
+
+    for (const allocation of allocations) {
+      let available = allocation.minutes;
+      const subjectQueue = queueBySubject.get(allocation.subject) || [];
+
+      while (available >= 15 && subjectQueue.length > 0) {
+        const active = subjectQueue[0];
+        const chunk = Math.min(available, active.minutesLeft);
+        await scheduleTaskChunk({
+          userId,
+          task: active.task,
+          phaseId,
+          date: slot.date,
+          chunk,
+          totalParts: active.totalParts,
+          part: active.part
+        });
+
+        scheduled += 1;
+        available -= chunk;
+        slot.remaining -= chunk;
+        active.minutesLeft -= chunk;
+        active.part += 1;
+
+        if (active.minutesLeft <= 0) {
+          subjectQueue.shift();
+        }
+      }
+    }
+  }
+
+  for (const items of queueBySubject.values()) {
+    overflow += items.length;
+  }
+
+  return { scheduled, overflow };
+}
+
+async function scheduleQueueWithDailyCapacity({ userId, queue, phaseId, startDate, endDate, weekdayMinutes, weekendMinutes, planningOptions = {} }) {
+  const normalizedOptions = normalizePlanningOptions(planningOptions, { weekdayMinutes, weekendMinutes });
+  const effectiveWeekdayMinutes = normalizedOptions.weekdayMinutes;
+  const effectiveWeekendMinutes = normalizedOptions.weekendMinutes;
+  const orderedQueue = orderQueueBySubjectPreference(queue, normalizedOptions);
+  const slots = [];
+
+  for (let cursor = startDate; cursor <= endDate; cursor = addDays(cursor, 1)) {
+    slots.push({
+      date: cursor,
+      remaining: isWeekendDate(cursor) ? effectiveWeekendMinutes : effectiveWeekdayMinutes
+    });
+  }
+
+  if (normalizedOptions.strategy === 'parallel') {
+    return scheduleParallelQueue({
+      userId,
+      queue: orderedQueue,
+      phaseId,
+      slots,
+      planningOptions: normalizedOptions,
+      weekdayMinutes: effectiveWeekdayMinutes,
+      weekendMinutes: effectiveWeekendMinutes
+    });
+  }
+
+  return scheduleSequentialQueue({
+    userId,
+    queue: orderedQueue,
+    phaseId,
+    slots,
+    weekdayMinutes: effectiveWeekdayMinutes,
+    weekendMinutes: effectiveWeekendMinutes
+  });
 }
 
 async function upsertTopicProgress(userId, task, status, mode) {
@@ -613,7 +775,7 @@ async function upsertTopicProgress(userId, task, status, mode) {
   );
 }
 
-async function createNitcPhaseOnePlan(userId) {
+async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
   const startDate = '2026-05-25';
   const endDate = '2026-07-10';
   const phaseId = `${userId}_nitc_phase1`;
@@ -623,6 +785,7 @@ async function createNitcPhaseOnePlan(userId) {
   const profile = await dbGet('SELECT weekday_hours, weekend_hours FROM user_profile WHERE user_id = ?', [userId]);
   const weekdayMinutes = Math.max(60, Math.round(parseFloat(profile?.weekday_hours || 3) * 60));
   const weekendMinutes = Math.max(60, Math.round(parseFloat(profile?.weekend_hours || 6) * 60));
+  const planningOptions = normalizePlanningOptions(rawPlanningOptions, { weekdayMinutes, weekendMinutes });
 
   await dbRun(
     `INSERT INTO study_phases (id, user_id, name, start_date, end_date, target_label, status, config, created_at)
@@ -642,7 +805,7 @@ async function createNitcPhaseOnePlan(userId) {
       endDate,
       'NITC self-sponsored deadline',
       'active',
-      JSON.stringify({ includedSubjects, excludedSubjects: ['Operating System', 'Computer Networks'] }),
+      JSON.stringify({ includedSubjects, excludedSubjects: ['Operating System', 'Computer Networks'], planningOptions }),
       new Date().toISOString()
     ]
   );
@@ -731,10 +894,11 @@ async function createNitcPhaseOnePlan(userId) {
     startDate,
     endDate,
     weekdayMinutes,
-    weekendMinutes
+    weekendMinutes,
+    planningOptions
   });
 
-  return { phaseId, queued: queue.length, scheduled: result.scheduled, overflow: result.overflow, startDate, endDate };
+  return { phaseId, queued: queue.length, scheduled: result.scheduled, overflow: result.overflow, startDate, endDate, planningOptions };
 }
 
 app.use('/api', async (req, res, next) => {
@@ -1459,10 +1623,10 @@ app.post('/api/calendar/rebuild-phase', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
 
-  const { phase = 'nitc_phase1', targetDate } = req.body || {};
+  const { phase = 'nitc_phase1', targetDate, planningOptions: rawPlanningOptions = {} } = req.body || {};
   try {
     if (phase === 'nitc_phase1') {
-      const result = await createNitcPhaseOnePlan(userId);
+      const result = await createNitcPhaseOnePlan(userId, rawPlanningOptions);
       return res.json({ success: true, ...result });
     }
 
@@ -1477,12 +1641,13 @@ app.post('/api/calendar/rebuild-phase', async (req, res) => {
     const profile = await dbGet('SELECT weekday_hours, weekend_hours FROM user_profile WHERE user_id = ?', [userId]);
     const weekdayMinutes = Math.max(60, Math.round(parseFloat(profile?.weekday_hours || 3) * 60));
     const weekendMinutes = Math.max(60, Math.round(parseFloat(profile?.weekend_hours || 6) * 60));
+    const planningOptions = normalizePlanningOptions(rawPlanningOptions, { weekdayMinutes, weekendMinutes });
 
     await dbRun(
       `INSERT INTO study_phases (id, user_id, name, start_date, end_date, target_label, status, config, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET end_date = excluded.end_date, status = excluded.status, config = excluded.config`,
-      [phaseId, userId, 'Post NITC Remaining Plan', startDate, endDate, 'GATE remaining syllabus', 'active', JSON.stringify({ rebuiltAfter: '2026-07-10' }), new Date().toISOString()]
+      [phaseId, userId, 'Post NITC Remaining Plan', startDate, endDate, 'GATE remaining syllabus', 'active', JSON.stringify({ rebuiltAfter: '2026-07-10', planningOptions }), new Date().toISOString()]
     );
     await dbRun('DELETE FROM study_plan WHERE user_id = ? AND phase_id = ? AND completed = 0', [userId, phaseId]);
 
@@ -1526,10 +1691,11 @@ app.post('/api/calendar/rebuild-phase', async (req, res) => {
       startDate,
       endDate,
       weekdayMinutes,
-      weekendMinutes
+      weekendMinutes,
+      planningOptions
     });
 
-    res.json({ success: true, phaseId, queued: queue.length, scheduled: result.scheduled, overflow: result.overflow, startDate, endDate });
+    res.json({ success: true, phaseId, queued: queue.length, scheduled: result.scheduled, overflow: result.overflow, startDate, endDate, planningOptions });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

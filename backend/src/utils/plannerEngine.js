@@ -40,6 +40,8 @@ function generateSchedule(profile, subjectsData) {
   const weakSubjectsList = profile.weakSubjects || [];
   const completedTopicsList = profile.completedTopics || [];
   const selectedTopicOrder = new Map((profile.selectedTopics || []).map((topic, index) => [topic.topicId || topic.id, index]));
+  const planningOptions = profile.planningOptions || {};
+  const subjectPriority = Array.isArray(planningOptions.subjectPriority) ? planningOptions.subjectPriority : [];
 
   // Group and sort the incoming parsed subjectsData
   const activeSubjects = subjectsData.map(sub => {
@@ -86,6 +88,11 @@ function generateSchedule(profile, subjectsData) {
   // Sort based on precedence index unless the user chose a custom topic sequence.
   if (!profile.selectedTopics || profile.selectedTopics.length === 0) {
     activeSubjects.sort((a, b) => {
+      const priorityA = subjectPriority.findIndex(name => String(name).toLowerCase() === a.subject.toLowerCase());
+      const priorityB = subjectPriority.findIndex(name => String(name).toLowerCase() === b.subject.toLowerCase());
+      if (priorityA !== -1 || priorityB !== -1) {
+        return (priorityA === -1 ? 99 : priorityA) - (priorityB === -1 ? 99 : priorityB);
+      }
       const idxA = subjectPrecedence.findIndex(s => s.toLowerCase().includes(a.subject.toLowerCase()) || a.subject.toLowerCase().includes(s.toLowerCase()));
       const idxB = subjectPrecedence.findIndex(s => s.toLowerCase().includes(b.subject.toLowerCase()) || b.subject.toLowerCase().includes(s.toLowerCase()));
       return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
@@ -94,8 +101,7 @@ function generateSchedule(profile, subjectsData) {
 
   // Flatten remaining topics list sequentially
   const taskQueue = [];
-  activeSubjects.forEach(sub => {
-    sub.topics.forEach(topic => {
+  const pushTopicTask = (sub, topic) => {
       // If subject is weak, multiply estimated hours slightly (by 1.2x) for thoroughness
       const estHours = sub.isWeak ? Math.ceil(topic.estimatedHours * 1.2) : topic.estimatedHours;
       taskQueue.push({
@@ -108,8 +114,20 @@ function generateSchedule(profile, subjectsData) {
         recommendedPyqs: topic.recommendedPyqs,
         category: topic.category || 'Core GATE'
       });
+  };
+
+  if (planningOptions.strategy === 'parallel') {
+    const maxTopics = Math.max(...activeSubjects.map(sub => sub.topics.length), 0);
+    for (let i = 0; i < maxTopics; i++) {
+      activeSubjects.forEach(sub => {
+        if (sub.topics[i]) pushTopicTask(sub, sub.topics[i]);
+      });
+    }
+  } else {
+    activeSubjects.forEach(sub => {
+      sub.topics.forEach(topic => pushTopicTask(sub, topic));
     });
-  });
+  }
 
   // 2. Distribute across calendar days
   const calendar = [];
@@ -219,24 +237,30 @@ function generateSchedule(profile, subjectsData) {
 
       if (carryOverHours <= 0) {
         // Dynamic Concept reinforcement exercises immediately upon completing study!
-        dayTasks.push({
-          subject: activeTask.subject,
-          topicName: `Concept Questions: ${activeTask.topicName}`,
-          type: 'concept_questions',
-          duration: 1.0,
-          description: `Work through core conceptual worksheets and short logic questions on ${activeTask.topicName}.`,
-          completed: false
-        });
+        if (availableHours >= 1.0) {
+          dayTasks.push({
+            subject: activeTask.subject,
+            topicName: `Concept Questions: ${activeTask.topicName}`,
+            type: 'concept_questions',
+            duration: 1.0,
+            description: `Work through core conceptual worksheets and short logic questions on ${activeTask.topicName}.`,
+            completed: false
+          });
+          availableHours -= 1.0;
+        }
 
         // Dynamic GATE past papers grind immediately following concept drills!
-        dayTasks.push({
-          subject: activeTask.subject,
-          topicName: `PYQ Practice: ${activeTask.topicName}`,
-          type: 'pyq',
-          duration: 1.5,
-          description: `Solve at least ${activeTask.recommendedPyqs} PYQs from GATE 2010-2026. Review video solutions on GFG if stuck.`,
-          completed: false
-        });
+        if (availableHours >= 1.5) {
+          dayTasks.push({
+            subject: activeTask.subject,
+            topicName: `PYQ Practice: ${activeTask.topicName}`,
+            type: 'pyq',
+            duration: 1.5,
+            description: `Solve at least ${activeTask.recommendedPyqs} PYQs from GATE 2010-2026. Review video solutions on GFG if stuck.`,
+            completed: false
+          });
+          availableHours -= 1.5;
+        }
         
         taskIndex++;
         activeTask = null;
