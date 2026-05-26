@@ -487,8 +487,20 @@ async function syncCatalogEstimates() {
 
 async function seedLearningItems() {
   const { subjects, topics } = await getCatalogMaps();
+  const discreteSubject = findSubject(subjects, 'Discrete Mathematics');
+  if (discreteSubject) {
+    await dbRun(
+      "DELETE FROM learning_items WHERE subject_id = ? AND visibility = 'creator' AND (id LIKE 'dm_%' OR id LIKE 'creator_dm_%')",
+      [discreteSubject.id]
+    );
+  }
 
-  for (const item of [...learningItemsData, ...creatorLearningItemsData]) {
+  const seedItems = [
+    ...learningItemsData.filter(item => !(item.subject === 'Discrete Mathematics' && item.id.startsWith('dm_'))),
+    ...creatorLearningItemsData
+  ];
+
+  for (const item of seedItems) {
     const subject = findSubject(subjects, item.subject);
     if (!subject) continue;
 
@@ -1048,10 +1060,16 @@ async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
       });
   };
 
-  const pushLearningItemsFor = (subjectName, source = 'video') => {
+  const pushLearningItemsFor = (subjectName, source = 'video', options = {}) => {
     const subjectId = findSubject(subjects, subjectName)?.id;
     learningItems
       .filter(item => subjectId === item.subject_id)
+      .filter(item => !options.idPrefix || item.id.startsWith(options.idPrefix))
+      .filter(item => !options.provider || item.provider === options.provider)
+      .sort((a, b) => {
+        const sequenceDiff = (Number(a.sequence) || 0) - (Number(b.sequence) || 0);
+        return sequenceDiff || String(a.title).localeCompare(String(b.title));
+      })
       .forEach(item => queue.push({
         subject: subjectName,
         topicName: item.title,
@@ -1066,11 +1084,11 @@ async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
   };
 
   pushCatalogTopics('DBMS');
-  pushLearningItemsFor('C Programming', 'creator_nitc');
-  pushLearningItemsFor('Data Structure', 'creator_nitc');
-  pushLearningItemsFor('Operating System', 'creator_nitc');
-  pushLearningItemsFor('Algorithm', 'creator_nitc');
-  pushLearningItemsFor('Discrete Mathematics', 'creator_nitc');
+  pushLearningItemsFor('C Programming', 'creator_nitc', { idPrefix: 'creator_block_' });
+  pushLearningItemsFor('Data Structure', 'creator_nitc', { idPrefix: 'creator_block_' });
+  pushLearningItemsFor('Operating System', 'creator_nitc', { idPrefix: 'creator_block_' });
+  pushLearningItemsFor('Algorithm', 'creator_nitc', { idPrefix: 'alg_' });
+  pushLearningItemsFor('Discrete Mathematics', 'creator_nitc', { idPrefix: 'creator_dm_go_' });
 
   pushCatalogTopics('Engineering Mathematics');
 
