@@ -15,6 +15,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const openaiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 const supabase = supabaseUrl && supabaseAnonKey && !supabaseAnonKey.startsWith('PASTE_')
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
@@ -1866,6 +1868,199 @@ app.get('/api/calendar/suggestions', async (req, res) => {
     }
 
     res.json({ days: results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+function weekDatesFrom(startDate) {
+  return Array.from({ length: 7 }, (_, index) => addDays(startDate, index));
+}
+
+function coerceWeeklyPlan(rawPlan, weekDates) {
+  const byDate = new Map((rawPlan.days || []).map(day => [day.date, day]));
+  return {
+    days: weekDates.map(date => {
+      const day = byDate.get(date) || { date, tasks: [] };
+      return {
+        date,
+        tasks: (day.tasks || []).slice(0, 8).map(task => ({
+          subject: String(task.subject || '').slice(0, 80),
+          title: String(task.title || task.topicName || 'Study task').slice(0, 220),
+          mode: ['full', 'skim', 'revision', 'pyq', 'custom'].includes(task.mode) ? task.mode : 'full',
+          plannedMinutes: Math.max(15, Math.min(360, parseInt(task.plannedMinutes || task.durationMinutes || 60, 10))),
+          source: ['topic', 'video', 'custom'].includes(task.source) ? task.source : 'custom',
+          topicId: task.topicId || '',
+          learningItemId: task.learningItemId || ''
+        }))
+      };
+    })
+  };
+}
+
+app.post('/api/calendar/weekly-ai-suggest', async (req, res) => {
+  const userId = getAuthUser(req);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
+  if (!openaiApiKey) return res.status(400).json({ error: 'OPENAI_API_KEY is not set on the backend.' });
+
+  const { weekStart, dailyHours = {}, prompt = '' } = req.body || {};
+  if (!weekStart) return res.status(400).json({ error: 'weekStart is required.' });
+
+  try {
+    const weekDates = weekDatesFrom(weekStart);
+    const { subjects, topics } = await getCatalogMaps();
+    const learningItems = await dbAll('SELECT * FROM learning_items ORDER BY subject_id ASC, sequence ASC LIMIT 160');
+    const subjectById = new Map(subjects.map(subject => [subject.id, subject]));
+    const compactTopics = topics.slice(0, 220).map(topic => ({
+      id: topic.id,
+      subject: subjectById.get(topic.subject_id)?.name || '',
+      title: topic.name,
+      minutes: Math.max(45, (topic.estimated_hours || 1) * 60)
+    }));
+    const compactVideos = learningItems.map(item => ({
+      id: item.id,
+      subject: subjectById.get(item.subject_id)?.name || '',
+      topicId: item.topic_id || '',
+      title: item.title,
+      minutes: item.duration_minutes || 60
+    }));
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: openaiModel,
+        temperature: 0.2,
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'weekly_study_plan',
+            strict: true,
+            schema: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                days: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    additionalProperties: false,
+                    properties: {
+                      date: { type: 'string' },
+                      tasks: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          additionalProperties: false,
+                          properties: {
+                            subject: { type: 'string' },
+                            title: { type: 'string' },
+                            mode: { type: 'string', enum: ['full', 'skim', 'revision', 'pyq', 'custom'] },
+                            plannedMinutes: { type: 'integer' },
+                            source: { type: 'string', enum: ['topic', 'video', 'custom'] },
+                            topicId: { type: 'string' },
+                            learningItemId: { type: 'string' }
+                          },
+                          required: ['subject', 'title', 'mode', 'plannedMinutes', 'source', 'topicId', 'learningItemId']
+                        }
+                      }
+                    },
+                    required: ['date', 'tasks']
+                  }
+                }
+              },
+              required: ['days']
+            }
+          }
+        },
+        messages: [
+          {
+            role: 'system',
+            content: 'Create a realistic 7-day GATE CS study plan. Respect each day capacity. Prefer provided video/topic IDs when matching. Return JSON only.'
+          },
+          {
+            role: 'user',
+            content: JSON.stringify({
+              weekDates,
+              dailyHours,
+              userInstruction: prompt,
+              subjects: subjects.map(subject => subject.name),
+              topics: compactTopics,
+              videos: compactVideos
+            })
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(502).json({ error: data.error?.message || 'AI planning request failed.' });
+    }
+
+    const content = data.choices?.[0]?.message?.content || '{}';
+    const parsed = JSON.parse(content);
+    res.json({ success: true, plan: coerceWeeklyPlan(parsed, weekDates) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/calendar/apply-week-plan', async (req, res) => {
+  const userId = getAuthUser(req);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
+
+  const { weekStart, days = [], replaceAuto = true } = req.body || {};
+  if (!weekStart || !Array.isArray(days)) return res.status(400).json({ error: 'weekStart and days are required.' });
+
+  try {
+    const weekDates = weekDatesFrom(weekStart);
+    const weekEnd = weekDates[6];
+    const { subjects } = await getCatalogMaps();
+    const subjectByName = new Map(subjects.map(subject => [subject.name.toLowerCase(), subject]));
+
+    if (replaceAuto) {
+      await dbRun(
+        `DELETE FROM study_plan
+         WHERE user_id = ?
+           AND date >= ?
+           AND date <= ?
+           AND completed = 0
+           AND source IN ('catalog', 'video', 'ai_weekly')`,
+        [userId, weekStart, weekEnd]
+      );
+    }
+
+    let inserted = 0;
+    for (const day of days) {
+      if (!weekDates.includes(day.date)) continue;
+      for (const task of day.tasks || []) {
+        const subject = subjectByName.get(String(task.subject || '').toLowerCase());
+        const topic = task.topicId ? await dbGet('SELECT * FROM topics WHERE id = ?', [task.topicId]) : null;
+        const item = task.learningItemId ? await dbGet('SELECT * FROM learning_items WHERE id = ?', [task.learningItemId]) : null;
+        const subjectName = subject?.name || task.subject || 'Weekly Study';
+        await insertStudyTask(userId, day.date, {
+          phaseId: day.date <= '2026-07-10' ? `${userId}_nitc_phase1` : `${userId}_phase2`,
+          topicId: topic?.id || item?.topic_id || task.topicId || '',
+          learningItemId: item?.id || task.learningItemId || '',
+          subject: subjectName,
+          topicName: task.title || item?.title || topic?.name || 'Weekly Study Task',
+          type: task.mode === 'revision' ? 'revision' : task.mode === 'pyq' ? 'pyq' : 'study',
+          plannedMinutes: plannedMinutesForMode(parseInt(task.plannedMinutes || 60, 10), task.mode || 'full'),
+          mode: task.mode || 'full',
+          source: 'ai_weekly',
+          difficulty: topic?.difficulty || '',
+          resourceLink: topic?.resource_link || item?.source_url || '',
+          description: 'Added from weekly preparation planner.'
+        });
+        inserted += 1;
+      }
+    }
+
+    res.json({ success: true, inserted });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

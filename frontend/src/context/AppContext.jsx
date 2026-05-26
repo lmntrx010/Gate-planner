@@ -380,6 +380,39 @@ export function AppProvider({ children }) {
     }
   };
 
+  const suggestWeeklyPlan = async (payload) => {
+    if (!userToken) return;
+    try {
+      const res = await authFetch(`${API_BASE}/calendar/weekly-ai-suggest`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    } catch (err) {
+      console.error('Failed to suggest weekly plan:', err);
+      return { error: err.message };
+    }
+  };
+
+  const applyWeeklyPlan = async (payload) => {
+    if (!userToken) return;
+    try {
+      const res = await authFetch(`${API_BASE}/calendar/apply-week-plan`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchCalendar();
+        await fetchDashboardStats();
+      }
+      return data;
+    } catch (err) {
+      console.error('Failed to apply weekly plan:', err);
+      return { error: err.message };
+    }
+  };
+
   const logTaskTime = async (payload) => {
     if (!userToken) return;
     try {
@@ -467,6 +500,8 @@ export function AppProvider({ children }) {
       fetchLearningItems,
       fetchCalendarSuggestions,
       addCalendarTask,
+      suggestWeeklyPlan,
+      applyWeeklyPlan,
       logTaskTime,
       rebuildPhasePlan,
       fetchSubjects,

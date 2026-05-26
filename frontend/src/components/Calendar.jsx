@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar as CalendarIcon, Clock, Link, CheckSquare, Square, ChevronLeft, ChevronRight, RefreshCw, Award, Check, X, Plus, Timer } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Link, CheckSquare, Square, ChevronLeft, ChevronRight, RefreshCw, Award, Check, X, Plus, Timer, Wand2 } from 'lucide-react';
 
 export default function Calendar({ onSelectTopic }) {
   const {
@@ -14,6 +14,8 @@ export default function Calendar({ onSelectTopic }) {
     fetchLearningItems,
     fetchCalendarSuggestions,
     addCalendarTask,
+    suggestWeeklyPlan,
+    applyWeeklyPlan,
     logTaskTime,
     rebuildPhasePlan
   } = useApp();
@@ -29,6 +31,9 @@ export default function Calendar({ onSelectTopic }) {
   const [logDraft, setLogDraft] = useState(null);
   const [phaseTargetDate, setPhaseTargetDate] = useState('2027-02-06');
   const [planningDraft, setPlanningDraft] = useState(null);
+  const [weeklyDraft, setWeeklyDraft] = useState(null);
+  const [weeklyLoading, setWeeklyLoading] = useState(false);
+  const [weeklyError, setWeeklyError] = useState('');
 
   // Group task lists into blocks of 7 days (weeks) for easy navigation
   const weeks = [];
@@ -39,6 +44,36 @@ export default function Calendar({ onSelectTopic }) {
   }
 
   const currentWeek = weeks[currentWeekIndex] || [];
+  const addDaysLocal = (dateString, days) => {
+    const date = new Date(`${dateString}T00:00:00`);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  const getWeekStart = (dateString = new Date().toISOString().split('T')[0]) => {
+    const date = new Date(`${dateString}T00:00:00`);
+    const day = date.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    date.setDate(date.getDate() + diff);
+    return date.toISOString().split('T')[0];
+  };
+
+  const buildWeekDays = (weekStart) => Array.from({ length: 7 }, (_, index) => {
+    const date = addDaysLocal(weekStart, index);
+    const day = new Date(`${date}T00:00:00`).getDay();
+    return {
+      date,
+      hours: day === 0 || day === 6 ? 6 : 3,
+      tasks: [],
+      draft: {
+        subject: subjects[0]?.name || '',
+        title: '',
+        plannedMinutes: 60,
+        mode: 'full',
+        source: 'custom'
+      }
+    };
+  });
 
   const handleNextWeek = () => {
     setCurrentWeekIndex(prev => Math.min(prev + 1, weeks.length - 1));
@@ -175,6 +210,84 @@ export default function Calendar({ onSelectTopic }) {
     });
   };
 
+  const openWeeklyDraft = () => {
+    const weekStart = getWeekStart(currentWeek[0]?.date);
+    setWeeklyDraft({
+      weekStart,
+      aiPrompt: '',
+      replaceAuto: true,
+      days: buildWeekDays(weekStart)
+    });
+    setWeeklyError('');
+  };
+
+  const updateWeeklyDay = (date, updater) => {
+    setWeeklyDraft(prev => ({
+      ...prev,
+      days: prev.days.map(day => day.date === date ? updater(day) : day)
+    }));
+  };
+
+  const addWeeklyManualTask = (date) => {
+    updateWeeklyDay(date, day => {
+      if (!day.draft.title.trim()) return day;
+      return {
+        ...day,
+        tasks: [...day.tasks, {
+          subject: day.draft.subject || subjects[0]?.name || 'Weekly Study',
+          title: day.draft.title.trim(),
+          plannedMinutes: parseInt(day.draft.plannedMinutes || '60', 10),
+          mode: day.draft.mode || 'full',
+          source: 'custom',
+          topicId: '',
+          learningItemId: ''
+        }],
+        draft: { ...day.draft, title: '', plannedMinutes: 60 }
+      };
+    });
+  };
+
+  const generateWeeklyAiPlan = async () => {
+    if (!weeklyDraft) return;
+    setWeeklyLoading(true);
+    setWeeklyError('');
+    const dailyHours = Object.fromEntries(weeklyDraft.days.map(day => [day.date, Number(day.hours || 0)]));
+    const result = await suggestWeeklyPlan({
+      weekStart: weeklyDraft.weekStart,
+      dailyHours,
+      prompt: weeklyDraft.aiPrompt
+    });
+    setWeeklyLoading(false);
+    if (!result?.success) {
+      setWeeklyError(result?.error || 'Could not generate weekly suggestions.');
+      return;
+    }
+    setWeeklyDraft(prev => ({
+      ...prev,
+      days: prev.days.map(day => ({
+        ...day,
+        tasks: result.plan.days.find(entry => entry.date === day.date)?.tasks || []
+      }))
+    }));
+  };
+
+  const saveWeeklyPlan = async () => {
+    if (!weeklyDraft) return;
+    setWeeklyLoading(true);
+    setWeeklyError('');
+    const result = await applyWeeklyPlan({
+      weekStart: weeklyDraft.weekStart,
+      replaceAuto: weeklyDraft.replaceAuto,
+      days: weeklyDraft.days.map(day => ({ date: day.date, tasks: day.tasks }))
+    });
+    setWeeklyLoading(false);
+    if (!result?.success) {
+      setWeeklyError(result?.error || 'Could not save weekly plan.');
+      return;
+    }
+    setWeeklyDraft(null);
+  };
+
   const submitPlanningDraft = async () => {
     if (!planningDraft) return;
     const priority = [
@@ -277,6 +390,13 @@ export default function Calendar({ onSelectTopic }) {
             className="flex items-center justify-center gap-2 py-2 px-3 sm:px-4 rounded-lg bg-cyber-emerald/10 border border-cyber-emerald/30 text-cyber-emerald text-xs font-semibold hover:bg-cyber-emerald/25 transition-all shadow-glow-emerald duration-300"
           >
             <Award className="w-3.5 h-3.5" /> NITC Phase 1
+          </button>
+
+          <button
+            onClick={openWeeklyDraft}
+            className="flex items-center justify-center gap-2 py-2 px-3 sm:px-4 rounded-lg bg-cyber-primary/10 border border-cyber-primary/30 text-cyber-primary text-xs font-semibold hover:bg-cyber-primary/20 transition-all shadow-glow duration-300"
+          >
+            <Wand2 className="w-3.5 h-3.5" /> Prepare Week
           </button>
 
           <div className="grid grid-cols-[1fr_auto] sm:flex sm:items-center gap-2">
@@ -885,6 +1005,152 @@ export default function Calendar({ onSelectTopic }) {
             >
               Generate Plan
             </button>
+          </div>
+        </div>
+      )}
+
+      {weeklyDraft && (
+        <div className="fixed inset-0 z-[1000] bg-cyber-bg/80 backdrop-blur-md flex items-start justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-5xl glass-panel border border-cyber-primary/30 rounded-xl p-4 sm:p-5 space-y-4 my-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-[10px] text-cyber-primary font-black uppercase tracking-widest">Weekly Preparation</div>
+                <h3 className="text-lg font-extrabold text-white mt-1">Plan This Week</h3>
+              </div>
+              <button onClick={() => setWeeklyDraft(null)} className="p-2 text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Week Start</label>
+                <input
+                  type="date"
+                  value={weeklyDraft.weekStart}
+                  onChange={(e) => setWeeklyDraft(prev => ({ ...prev, weekStart: e.target.value, days: buildWeekDays(e.target.value) }))}
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">AI Instruction</label>
+                <textarea
+                  value={weeklyDraft.aiPrompt}
+                  onChange={(e) => setWeeklyDraft(prev => ({ ...prev, aiPrompt: e.target.value }))}
+                  placeholder="Example: Mon Tue Algorithm videos, Wed DS, Thu Fri DBMS, Sat Sun mix Discrete Maths revision and PYQs. Keep each day within my hours."
+                  className="w-full h-24 bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+              {weeklyDraft.days.map(day => (
+                <div key={day.date} className="rounded-xl border border-gray-800 bg-gray-950/60 p-3 space-y-3">
+                  <div>
+                    <div className="text-[10px] text-cyber-primary font-black uppercase tracking-wider">
+                      {new Date(`${day.date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short' })}
+                    </div>
+                    <div className="text-sm text-white font-bold">{day.date.substring(5)}</div>
+                  </div>
+                  <input
+                    type="number"
+                    min="0.5"
+                    step="0.5"
+                    value={day.hours}
+                    onChange={(e) => updateWeeklyDay(day.date, current => ({ ...current, hours: e.target.value }))}
+                    className="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white"
+                  />
+                  <div className="space-y-2">
+                    {day.tasks.map((task, index) => (
+                      <div key={`${day.date}_${index}`} className="rounded-lg border border-gray-800 bg-gray-900/70 p-2">
+                        <div className="text-[9px] text-cyber-emerald font-black uppercase">{task.subject}</div>
+                        <input
+                          value={task.title}
+                          onChange={(e) => updateWeeklyDay(day.date, current => ({
+                            ...current,
+                            tasks: current.tasks.map((item, i) => i === index ? { ...item, title: e.target.value } : item)
+                          }))}
+                          className="w-full bg-transparent text-xs text-white font-bold outline-none mt-1"
+                        />
+                        <div className="flex items-center gap-2 mt-2">
+                          <input
+                            type="number"
+                            min="15"
+                            value={task.plannedMinutes}
+                            onChange={(e) => updateWeeklyDay(day.date, current => ({
+                              ...current,
+                              tasks: current.tasks.map((item, i) => i === index ? { ...item, plannedMinutes: parseInt(e.target.value || '0') } : item)
+                            }))}
+                            className="w-16 bg-gray-950 border border-gray-800 rounded p-1 text-[10px] text-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateWeeklyDay(day.date, current => ({
+                              ...current,
+                              tasks: current.tasks.filter((_, i) => i !== index)
+                            }))}
+                            className="text-[10px] text-cyber-rose hover:text-red-300"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <select
+                    value={day.draft.subject}
+                    onChange={(e) => updateWeeklyDay(day.date, current => ({ ...current, draft: { ...current.draft, subject: e.target.value } }))}
+                    className="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white"
+                  >
+                    {subjects.map(subject => <option key={subject.id} value={subject.name}>{subject.name}</option>)}
+                  </select>
+                  <input
+                    value={day.draft.title}
+                    onChange={(e) => updateWeeklyDay(day.date, current => ({ ...current, draft: { ...current.draft, title: e.target.value } }))}
+                    placeholder="Topic/video"
+                    className="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => addWeeklyManualTask(day.date)}
+                    className="w-full rounded-lg border border-cyber-primary/30 bg-cyber-primary/10 py-2 text-[10px] font-bold text-cyber-primary hover:bg-cyber-primary/20"
+                  >
+                    Add Item
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <label className="flex items-center gap-2 text-xs text-gray-300">
+              <input
+                type="checkbox"
+                checked={weeklyDraft.replaceAuto}
+                onChange={(e) => setWeeklyDraft(prev => ({ ...prev, replaceAuto: e.target.checked }))}
+                className="accent-cyber-primary"
+              />
+              Replace unfinished auto-planned tasks in this week
+            </label>
+
+            {weeklyError && (
+              <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">{weeklyError}</div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={generateWeeklyAiPlan}
+                disabled={weeklyLoading}
+                className="py-3 rounded-lg bg-cyber-primary hover:bg-blue-600 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-2"
+              >
+                <Wand2 className="w-4 h-4" /> {weeklyLoading ? 'Generating...' : 'Ask AI To Plan'}
+              </button>
+              <button
+                type="button"
+                onClick={saveWeeklyPlan}
+                disabled={weeklyLoading}
+                className="py-3 rounded-lg bg-cyber-emerald hover:bg-emerald-600 disabled:opacity-50 text-white font-bold"
+              >
+                Save Week To Calendar
+              </button>
+            </div>
           </div>
         </div>
       )}

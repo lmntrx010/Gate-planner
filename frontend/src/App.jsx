@@ -115,13 +115,13 @@ function MainAppLayout() {
           </button>
 
           {/* Scoped Profile Card & Logout */}
-          <div className="flex items-center justify-between gap-3 px-2 pt-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-blue-500/15 border border-blue-500/35 flex items-center justify-center text-blue-400 text-xs font-black">
+          <div className="space-y-3 px-2 pt-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-blue-500/15 border border-blue-500/35 flex items-center justify-center text-blue-400 text-xs font-black shrink-0">
                 {userName ? userName.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-white leading-tight truncate max-w-[100px]" title={userName}>
+                <div className="text-xs font-bold text-white leading-tight truncate" title={userName}>
                   {userName || 'GATE Aspirant'}
                 </div>
                 <span className="text-[9px] text-gray-500 uppercase font-semibold">Target {profile.targetYear || 2027}</span>
@@ -131,9 +131,9 @@ function MainAppLayout() {
             <button
               onClick={logout}
               title="Sign Out of Session"
-              className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500 border border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-white transition duration-200"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 border border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-white text-xs font-bold transition duration-200"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4" /> Sign Out
             </button>
           </div>
         </div>
