@@ -271,6 +271,8 @@ const getAuthUser = (req) => {
   return req.userId || 'local_demo_user';
 };
 
+const CREATOR_EMAIL = 'sambhu.karthika@gmail.com';
+
 async function ensureUserExists(userId) {
   await dbRun(
     `INSERT OR IGNORE INTO users (id, email, password_hash, salt, name, created_at)
@@ -285,6 +287,35 @@ async function ensureUserExists(userId) {
     ]
   );
 }
+
+async function getCurrentUserEmail(userId) {
+  const user = await dbGet('SELECT email FROM users WHERE id = ?', [userId]);
+  return String(user?.email || '').toLowerCase();
+}
+
+async function isCreatorUser(userId) {
+  return (await getCurrentUserEmail(userId)) === CREATOR_EMAIL;
+}
+
+function visibleLearningItemsSql(extraWhere = '') {
+  return `SELECT * FROM learning_items WHERE (visibility = 'creator' OR owner_user_id = ?) ${extraWhere}`;
+}
+
+const averageGateResources = [
+  ['Algorithm', 'Average Algorithms concept + PYQ block', 42],
+  ['Data Structure', 'Average Data Structures concept + PYQ block', 38],
+  ['DBMS', 'Average DBMS concept + PYQ block', 36],
+  ['C Programming', 'Average C Programming concept + practice block', 30],
+  ['Discrete Mathematics', 'Average Discrete Mathematics concept + PYQ block', 55],
+  ['Engineering Mathematics', 'Average Engineering Mathematics concept + practice block', 36],
+  ['Operating System', 'Average Operating System concept + PYQ block', 42],
+  ['Computer Networks', 'Average Computer Networks concept + PYQ block', 38],
+  ['Theory of Computation', 'Average TOC concept + PYQ block', 34],
+  ['Compiler Design', 'Average Compiler Design concept + PYQ block', 28],
+  ['Computer Organization and Architecture', 'Average COA concept + PYQ block', 38],
+  ['Digital Logic', 'Average Digital Logic concept + PYQ block', 26],
+  ['General Aptitude', 'Average General Aptitude practice block', 24]
+];
 
 function addDays(dateString, days) {
   const [year, month, day] = dateString.split('-').map(Number);
@@ -463,8 +494,9 @@ async function seedLearningItems() {
     const topic = findTopic(topics, subject.id, item.topic);
     await dbRun(
       `INSERT INTO learning_items (
-        id, subject_id, topic_id, title, provider, duration_minutes, sequence, source_url, category
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, subject_id, topic_id, title, provider, duration_minutes, sequence, source_url, category,
+        owner_user_id, visibility, editable_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         subject_id = excluded.subject_id,
         topic_id = excluded.topic_id,
@@ -473,7 +505,9 @@ async function seedLearningItems() {
         duration_minutes = excluded.duration_minutes,
         sequence = excluded.sequence,
         source_url = excluded.source_url,
-        category = excluded.category`,
+        category = excluded.category,
+        visibility = excluded.visibility,
+        editable_by = excluded.editable_by`,
       [
         item.id,
         subject.id,
@@ -483,7 +517,10 @@ async function seedLearningItems() {
         item.durationMinutes,
         item.sequence,
         item.sourceUrl || '',
-        item.category || 'Video Lesson'
+        item.category || 'Video Lesson',
+        '',
+        'creator',
+        'creator'
       ]
     );
   }
@@ -794,7 +831,7 @@ async function getNextUnfinishedCandidate(userId) {
   const subjectPriority = ['Algorithm', 'Data Structure', 'Discrete Mathematics', 'DBMS', 'C Programming', 'Engineering Mathematics', 'Operating System', 'Computer Networks'];
   const candidates = [];
 
-  const learningItems = await dbAll('SELECT * FROM learning_items ORDER BY subject_id ASC, sequence ASC');
+  const learningItems = await dbAll(`${visibleLearningItemsSql()} ORDER BY subject_id ASC, sequence ASC`, [userId]);
   learningItems.forEach(item => {
     if (scheduledItemIds.has(item.id) || completedItemIds.has(item.id)) return;
     const subject = subjectById.get(item.subject_id);
@@ -938,7 +975,7 @@ async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
   const phaseId = `${userId}_nitc_phase1`;
   const includedSubjects = ['DBMS', 'C Programming', 'Algorithm', 'Discrete Mathematics', 'Data Structure', 'Engineering Mathematics'];
   const { subjects, topics } = await getCatalogMaps();
-  const learningItems = await dbAll('SELECT * FROM learning_items ORDER BY sequence ASC');
+  const learningItems = await dbAll(`${visibleLearningItemsSql()} ORDER BY sequence ASC`, [userId]);
   const profile = await dbGet('SELECT weekday_hours, weekend_hours FROM user_profile WHERE user_id = ?', [userId]);
   const weekdayMinutes = Math.max(60, Math.round(parseFloat(profile?.weekday_hours || 3) * 60));
   const weekendMinutes = Math.max(60, Math.round(parseFloat(profile?.weekend_hours || 6) * 60));
@@ -1084,6 +1121,9 @@ app.use('/api', async (req, res, next) => {
 
   req.userId = data.user.id;
   await ensureUserExists(req.userId);
+  if (data.user.email) {
+    await dbRun('UPDATE users SET email = ? WHERE id = ?', [data.user.email.toLowerCase(), req.userId]);
+  }
   next();
 });
 
@@ -1307,7 +1347,7 @@ app.get('/api/subjects', async (req, res) => {
   try {
     const subjects = await dbAll('SELECT * FROM subjects');
     const topics = await dbAll('SELECT * FROM topics');
-    const learningItems = await dbAll('SELECT * FROM learning_items');
+    const learningItems = await dbAll("SELECT * FROM learning_items WHERE visibility = 'creator' OR owner_user_id = ?", [userId]);
     const progressRows = await dbAll(
       `SELECT topic_id, learning_item_id FROM topic_progress
        WHERE user_id = ? AND status IN ('completed', 'skimmed')`,
@@ -1688,20 +1728,28 @@ app.get('/api/learning-items', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
 
-  const { subjectId } = req.query;
+  const { subjectId, source = 'all' } = req.query;
   try {
-    const params = [];
+    const params = [userId];
     let sql = `SELECT li.*, s.name as subject_name, t.name as topic_name
       FROM learning_items li
       LEFT JOIN subjects s ON s.id = li.subject_id
-      LEFT JOIN topics t ON t.id = li.topic_id`;
+      LEFT JOIN topics t ON t.id = li.topic_id
+      WHERE (li.visibility = 'creator' OR li.owner_user_id = ?)`;
     if (subjectId) {
-      sql += ' WHERE li.subject_id = ?';
+      sql += ' AND li.subject_id = ?';
       params.push(subjectId);
+    }
+    if (source === 'mine') {
+      sql += " AND li.owner_user_id = ?";
+      params.push(userId);
+    } else if (source === 'creator') {
+      sql += " AND li.visibility = 'creator'";
     }
     sql += ' ORDER BY li.sequence ASC';
 
     const items = await dbAll(sql, params);
+    const creatorUser = await isCreatorUser(userId);
     res.json(items.map(item => ({
       id: item.id,
       subjectId: item.subject_id,
@@ -1713,7 +1761,10 @@ app.get('/api/learning-items', async (req, res) => {
       durationMinutes: item.duration_minutes,
       sequence: item.sequence,
       sourceUrl: item.source_url,
-      category: item.category
+      category: item.category,
+      visibility: item.visibility || 'creator',
+      ownerUserId: item.owner_user_id || '',
+      canEdit: item.owner_user_id === userId || (item.editable_by === 'creator' && creatorUser)
     })));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1724,7 +1775,7 @@ app.post('/api/learning-items', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
 
-  const { subjectId, topicId, title, provider, durationMinutes, sourceUrl, category } = req.body;
+  const { subjectId, topicId, title, provider, durationMinutes, sourceUrl, category, visibility = 'private' } = req.body;
   if (!subjectId || !title) {
     return res.status(400).json({ error: 'subjectId and title are required.' });
   }
@@ -1732,9 +1783,13 @@ app.post('/api/learning-items', async (req, res) => {
   try {
     const itemId = `custom_${userId}_${toSlug(title)}_${crypto.randomBytes(3).toString('hex')}`;
     const maxRow = await dbGet('SELECT MAX(sequence) as maxSeq FROM learning_items WHERE subject_id = ?', [subjectId]);
+    const isCreatorUpload = visibility === 'creator';
+    if (isCreatorUpload && !(await isCreatorUser(userId))) {
+      return res.status(403).json({ error: 'Only the creator can edit creator resources.' });
+    }
     await dbRun(
-      `INSERT INTO learning_items (id, subject_id, topic_id, title, provider, duration_minutes, sequence, source_url, category)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO learning_items (id, subject_id, topic_id, title, provider, duration_minutes, sequence, source_url, category, owner_user_id, visibility, editable_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         itemId,
         subjectId,
@@ -1744,7 +1799,10 @@ app.post('/api/learning-items', async (req, res) => {
         parseInt(durationMinutes || 60),
         (maxRow?.maxSeq || 9000) + 1,
         sourceUrl || '',
-        category || 'Custom'
+        category || 'Custom',
+        isCreatorUpload ? '' : userId,
+        isCreatorUpload ? 'creator' : 'private',
+        isCreatorUpload ? 'creator' : 'owner'
       ]
     );
     res.json({ success: true, id: itemId });
@@ -1757,7 +1815,7 @@ app.post('/api/learning-items/bulk', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
 
-  const { subjectId, items = [], provider = 'Custom Upload', category = 'Uploaded Video' } = req.body || {};
+  const { subjectId, items = [], provider = 'Custom Upload', category = 'Uploaded Video', visibility = 'private' } = req.body || {};
   if (!subjectId || !Array.isArray(items)) {
     return res.status(400).json({ error: 'subjectId and items are required.' });
   }
@@ -1765,6 +1823,10 @@ app.post('/api/learning-items/bulk', async (req, res) => {
   try {
     const subject = await dbGet('SELECT * FROM subjects WHERE id = ?', [subjectId]);
     if (!subject) return res.status(404).json({ error: 'Subject not found.' });
+    const isCreatorUpload = visibility === 'creator';
+    if (isCreatorUpload && !(await isCreatorUser(userId))) {
+      return res.status(403).json({ error: 'Only the creator can edit creator resources.' });
+    }
     const maxRow = await dbGet('SELECT MAX(sequence) as maxSeq FROM learning_items WHERE subject_id = ?', [subjectId]);
     let sequence = maxRow?.maxSeq || 9000;
     let inserted = 0;
@@ -1775,8 +1837,8 @@ app.post('/api/learning-items/bulk', async (req, res) => {
       sequence += 1;
       const itemId = `upload_${userId}_${subjectId}_${toSlug(title)}_${crypto.randomBytes(3).toString('hex')}`;
       await dbRun(
-        `INSERT INTO learning_items (id, subject_id, topic_id, title, provider, duration_minutes, sequence, source_url, category)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO learning_items (id, subject_id, topic_id, title, provider, duration_minutes, sequence, source_url, category, owner_user_id, visibility, editable_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           itemId,
           subjectId,
@@ -1786,7 +1848,10 @@ app.post('/api/learning-items/bulk', async (req, res) => {
           Math.max(5, parseInt(item.durationMinutes || item.plannedMinutes || 60, 10)),
           sequence,
           item.sourceUrl || '',
-          category
+          category,
+          isCreatorUpload ? '' : userId,
+          isCreatorUpload ? 'creator' : 'private',
+          isCreatorUpload ? 'creator' : 'owner'
         ]
       );
       inserted += 1;
@@ -1846,7 +1911,7 @@ app.get('/api/calendar/suggestions', async (req, res) => {
       plannedByDate.set(row.date, (plannedByDate.get(row.date) || 0) + minutes);
     });
 
-    const learningItems = await dbAll('SELECT * FROM learning_items ORDER BY subject_id ASC, sequence ASC');
+    const learningItems = await dbAll(`${visibleLearningItemsSql()} ORDER BY subject_id ASC, sequence ASC`, [userId]);
     const candidates = [];
 
     learningItems.forEach(item => {
@@ -2057,13 +2122,21 @@ app.post('/api/calendar/weekly-ai-suggest', async (req, res) => {
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
   if (!geminiApiKey) return res.status(400).json({ error: 'GEMINI_API_KEY is not set on the backend.' });
 
-  const { weekStart, dailyHours = {}, prompt = '' } = req.body || {};
+  const { weekStart, dailyHours = {}, prompt = '', resourceSource = 'all' } = req.body || {};
   if (!weekStart) return res.status(400).json({ error: 'weekStart is required.' });
 
   try {
     const weekDates = weekDatesFrom(weekStart);
     const { subjects, topics } = await getCatalogMaps();
-    const learningItems = await dbAll('SELECT * FROM learning_items ORDER BY subject_id ASC, sequence ASC LIMIT 160');
+    let learningSql = visibleLearningItemsSql();
+    const learningParams = [userId];
+    if (resourceSource === 'mine') {
+      learningSql = "SELECT * FROM learning_items WHERE owner_user_id = ?";
+    } else if (resourceSource === 'creator' || resourceSource === 'creator_editor') {
+      learningSql = "SELECT * FROM learning_items WHERE visibility = 'creator'";
+      learningParams.length = 0;
+    }
+    const learningItems = await dbAll(`${learningSql} ORDER BY subject_id ASC, sequence ASC LIMIT 160`, learningParams);
     const subjectById = new Map(subjects.map(subject => [subject.id, subject]));
     const compactTopics = topics.slice(0, 220).map(topic => ({
       id: topic.id,
@@ -2138,7 +2211,10 @@ app.post('/api/calendar/weekly-ai-suggest', async (req, res) => {
               userInstruction: prompt,
               subjects: subjects.map(subject => subject.name),
               topics: compactTopics,
-              videos: compactVideos
+              videos: compactVideos,
+              averageGateResources: resourceSource === 'average'
+                ? averageGateResources.map(([subject, title, hours]) => ({ subject, title, minutes: hours * 60 }))
+                : []
             })
           }]
         }]
@@ -2249,7 +2325,7 @@ app.post('/api/calendar/rebuild-phase', async (req, res) => {
     const completedTopicIds = new Set(completedRows.map(row => row.topic_id).filter(Boolean));
     const completedItemIds = new Set(completedRows.map(row => row.learning_item_id).filter(Boolean));
     const { subjects, topics } = await getCatalogMaps();
-    const learningItems = await dbAll('SELECT * FROM learning_items ORDER BY sequence ASC');
+    const learningItems = await dbAll(`${visibleLearningItemsSql()} ORDER BY sequence ASC`, [userId]);
     const profile = await dbGet('SELECT weekday_hours, weekend_hours FROM user_profile WHERE user_id = ?', [userId]);
     const weekdayMinutes = Math.max(60, Math.round(parseFloat(profile?.weekday_hours || 3) * 60));
     const weekendMinutes = Math.max(60, Math.round(parseFloat(profile?.weekend_hours || 6) * 60));
@@ -2412,7 +2488,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
     // Calculate subject-wise completion rates
     const subjects = await dbAll('SELECT * FROM subjects');
     const completedList = JSON.parse(user.completed_topics || '[]');
-    const learningItems = await dbAll('SELECT * FROM learning_items');
+    const learningItems = await dbAll("SELECT * FROM learning_items WHERE visibility = 'creator' OR owner_user_id = ?", [userId]);
     const progressRows = await dbAll(
       `SELECT topic_id, learning_item_id FROM topic_progress
        WHERE user_id = ? AND status IN ('completed', 'skimmed')`,

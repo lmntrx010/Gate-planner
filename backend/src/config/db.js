@@ -125,6 +125,9 @@ const sqliteSchema = [
     sequence INTEGER,
     source_url TEXT,
     category TEXT,
+    owner_user_id TEXT DEFAULT '',
+    visibility TEXT DEFAULT 'creator',
+    editable_by TEXT DEFAULT 'creator',
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
   )`,
   `CREATE TABLE IF NOT EXISTS topic_progress (
@@ -219,6 +222,9 @@ async function initDatabase() {
       await pool.query("ALTER TABLE study_plan ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'planned'");
       await pool.query("ALTER TABLE study_plan ADD COLUMN IF NOT EXISTS mode TEXT DEFAULT 'full'");
       await pool.query("ALTER TABLE study_plan ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'catalog'");
+      await pool.query("ALTER TABLE learning_items ADD COLUMN IF NOT EXISTS owner_user_id TEXT DEFAULT ''");
+      await pool.query("ALTER TABLE learning_items ADD COLUMN IF NOT EXISTS visibility TEXT DEFAULT 'creator'");
+      await pool.query("ALTER TABLE learning_items ADD COLUMN IF NOT EXISTS editable_by TEXT DEFAULT 'creator'");
       console.log('[Database] Supabase Postgres schema initialization complete.');
       return;
     } catch (err) {
@@ -245,8 +251,37 @@ async function initDatabase() {
           }
           pending -= 1;
           if (pending === 0) {
-            console.log('[Database] SQLite schema initialization complete.');
-            resolve();
+            const learningMigrations = [
+              ['owner_user_id', "TEXT DEFAULT ''"],
+              ['visibility', "TEXT DEFAULT 'creator'"],
+              ['editable_by', "TEXT DEFAULT 'creator'"]
+            ];
+            db.all('PRAGMA table_info(learning_items)', (infoErr, columns) => {
+              if (infoErr) {
+                reject(infoErr);
+                return;
+              }
+              const existingColumns = new Set(columns.map(col => col.name));
+              const missing = learningMigrations.filter(([column]) => !existingColumns.has(column));
+              let migrationIndex = 0;
+              const runNextMigration = () => {
+                if (migrationIndex >= missing.length) {
+                  console.log('[Database] SQLite schema initialization complete.');
+                  resolve();
+                  return;
+                }
+                const [column, type] = missing[migrationIndex];
+                migrationIndex += 1;
+                db.run(`ALTER TABLE learning_items ADD COLUMN ${column} ${type}`, (migrationErr) => {
+                  if (migrationErr) {
+                    reject(migrationErr);
+                    return;
+                  }
+                  runNextMigration();
+                });
+              };
+              runNextMigration();
+            });
           }
         });
       });

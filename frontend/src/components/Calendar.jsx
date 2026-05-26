@@ -8,6 +8,7 @@ export default function Calendar({ onSelectTopic }) {
     subjects,
     authFetch,
     API_BASE,
+    userEmail,
     toggleTaskComplete,
     dragReschedule,
     adaptiveReschedule,
@@ -218,6 +219,7 @@ export default function Calendar({ onSelectTopic }) {
     setWeeklyDraft({
       weekStart,
       aiPrompt: '',
+      resourceSource: 'mine',
       replaceAuto: true,
       days: buildWeekDays(weekStart)
     });
@@ -298,6 +300,7 @@ export default function Calendar({ onSelectTopic }) {
       subjectId: subjectIdByName(day.draft.subject),
       provider: 'User Upload',
       category: 'Uploaded Video',
+      visibility: weeklyDraft.resourceSource === 'creator_editor' ? 'creator' : 'private',
       items: parsed.map(task => ({
         title: task.title,
         durationMinutes: task.plannedMinutes
@@ -345,7 +348,8 @@ export default function Calendar({ onSelectTopic }) {
     const result = await suggestWeeklyPlan({
       weekStart: weeklyDraft.weekStart,
       dailyHours,
-      prompt: weeklyDraft.aiPrompt
+      prompt: weeklyDraft.aiPrompt,
+      resourceSource: weeklyDraft.resourceSource
     });
     setWeeklyLoading(false);
     if (!result?.success) {
@@ -1115,7 +1119,7 @@ export default function Calendar({ onSelectTopic }) {
               <button onClick={() => setWeeklyDraft(null)} className="p-2 text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-[180px_220px_1fr] gap-3">
               <div>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Week Start</label>
                 <input
@@ -1124,6 +1128,22 @@ export default function Calendar({ onSelectTopic }) {
                   onChange={(e) => setWeeklyDraft(prev => ({ ...prev, weekStart: e.target.value, days: buildWeekDays(e.target.value) }))}
                   className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white"
                 />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Planning Source</label>
+                <select
+                  value={weeklyDraft.resourceSource}
+                  onChange={(e) => setWeeklyDraft(prev => ({ ...prev, resourceSource: e.target.value }))}
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white"
+                >
+                  <option value="mine">My Resources</option>
+                  <option value="creator">Creator Recommended</option>
+                  <option value="average">Average GATE Resources</option>
+                  <option value="creator_editor">Creator Planner</option>
+                </select>
+                {weeklyDraft.resourceSource === 'creator_editor' && userEmail !== 'sambhu.karthika@gmail.com' && (
+                  <p className="mt-2 text-[10px] text-cyber-rose">Only sambhu.karthika@gmail.com can save creator resources.</p>
+                )}
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">AI Instruction</label>
@@ -1219,10 +1239,10 @@ export default function Calendar({ onSelectTopic }) {
                   <button
                     type="button"
                     onClick={() => uploadBulkTopicsForSubject(day.date)}
-                    disabled={weeklyLoading}
+                    disabled={weeklyLoading || (weeklyDraft.resourceSource === 'creator_editor' && userEmail !== 'sambhu.karthika@gmail.com')}
                     className="w-full rounded-lg border border-cyber-gold/30 bg-cyber-gold/10 py-2 text-[10px] font-bold text-cyber-gold hover:bg-cyber-gold/20 disabled:opacity-50"
                   >
-                    Save As Subject Videos
+                    {weeklyDraft.resourceSource === 'creator_editor' ? 'Save To Creator Resources' : 'Save As My Subject Videos'}
                   </button>
                   <button
                     type="button"
