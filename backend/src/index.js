@@ -10,6 +10,7 @@ const { matchSyllabus } = require('./utils/syllabusMatcher');
 const { generateSchedule, rebalanceSchedule } = require('./utils/plannerEngine');
 const { exportToCSV, exportToICS } = require('./utils/exportSystem');
 const learningItemsData = require('./data/learningItems.json');
+const creatorLearningItemsData = require('./data/creatorLearningItems.json');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -487,7 +488,7 @@ async function syncCatalogEstimates() {
 async function seedLearningItems() {
   const { subjects, topics } = await getCatalogMaps();
 
-  for (const item of learningItemsData) {
+  for (const item of [...learningItemsData, ...creatorLearningItemsData]) {
     const subject = findSubject(subjects, item.subject);
     if (!subject) continue;
 
@@ -973,7 +974,7 @@ async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
   const startDate = '2026-05-25';
   const endDate = '2026-07-10';
   const phaseId = `${userId}_nitc_phase1`;
-  const includedSubjects = ['DBMS', 'C Programming', 'Algorithm', 'Discrete Mathematics', 'Data Structure', 'Engineering Mathematics'];
+  const includedSubjects = ['DBMS', 'C Programming', 'Algorithm', 'Discrete Mathematics', 'Data Structure', 'Engineering Mathematics', 'Operating System'];
   const { subjects, topics } = await getCatalogMaps();
   const learningItems = await dbAll(`${visibleLearningItemsSql()} ORDER BY sequence ASC`, [userId]);
   const profile = await dbGet('SELECT weekday_hours, weekend_hours FROM user_profile WHERE user_id = ?', [userId]);
@@ -999,7 +1000,7 @@ async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
       endDate,
       'NITC self-sponsored deadline',
       'active',
-      JSON.stringify({ includedSubjects, excludedSubjects: ['Operating System', 'Computer Networks'], planningOptions }),
+      JSON.stringify({ includedSubjects, excludedSubjects: ['Computer Networks'], planningOptions }),
       new Date().toISOString()
     ]
   );
@@ -1047,38 +1048,30 @@ async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
       });
   };
 
+  const pushLearningItemsFor = (subjectName, source = 'video') => {
+    const subjectId = findSubject(subjects, subjectName)?.id;
+    learningItems
+      .filter(item => subjectId === item.subject_id)
+      .forEach(item => queue.push({
+        subject: subjectName,
+        topicName: item.title,
+        topicId: item.topic_id,
+        learningItemId: item.id,
+        plannedMinutes: item.duration_minutes,
+        type: item.category?.toLowerCase().includes('pyq') ? 'pyq' : 'study',
+        mode: item.category?.toLowerCase().includes('revision') ? 'revision' : 'full',
+        source,
+        description: `${item.provider} - mapped to ${item.category || 'Video Lesson'}`
+      }));
+  };
+
   pushCatalogTopics('DBMS');
-  pushCatalogTopics('C Programming');
+  pushLearningItemsFor('C Programming', 'creator_nitc');
+  pushLearningItemsFor('Data Structure', 'creator_nitc');
+  pushLearningItemsFor('Operating System', 'creator_nitc');
+  pushLearningItemsFor('Algorithm', 'creator_nitc');
+  pushLearningItemsFor('Discrete Mathematics', 'creator_nitc');
 
-  learningItems
-    .filter(item => findSubject(subjects, 'Algorithm')?.id === item.subject_id)
-    .forEach(item => queue.push({
-      subject: 'Algorithm',
-      topicName: item.title,
-      topicId: item.topic_id,
-      learningItemId: item.id,
-      plannedMinutes: item.duration_minutes,
-      type: item.category?.toLowerCase().includes('pyq') ? 'pyq' : 'study',
-      mode: 'full',
-      source: 'video',
-      description: `${item.provider} - mapped to ${item.category || 'Video Lesson'}`
-    }));
-
-  learningItems
-    .filter(item => findSubject(subjects, 'Discrete Mathematics')?.id === item.subject_id)
-    .forEach(item => queue.push({
-      subject: 'Discrete Mathematics',
-      topicName: item.title,
-      topicId: item.topic_id,
-      learningItemId: item.id,
-      plannedMinutes: item.duration_minutes,
-      type: item.category?.toLowerCase().includes('pyq') ? 'pyq' : 'study',
-      mode: 'full',
-      source: 'video',
-      description: `${item.provider} - mapped to ${item.category || 'Video Lesson'}`
-    }));
-
-  pushCatalogTopics('Data Structure');
   pushCatalogTopics('Engineering Mathematics');
 
   const result = await scheduleQueueWithDailyCapacity({

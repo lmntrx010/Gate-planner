@@ -1,0 +1,832 @@
+[
+  {
+    "id": "creator_dm_001",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10001,
+    "durationMinutes": 88,
+    "title": "Lecture 1: Basic operators and properties",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_002",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10002,
+    "durationMinutes": 57,
+    "title": "Lecture 2: Practice Questions",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_003",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10003,
+    "durationMinutes": 66,
+    "title": "Lecture 3: Derived operators and properties",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_004",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10004,
+    "durationMinutes": 107,
+    "title": "Lecture 4: Satisfiable, tautology, contradiction, implication",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_005",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10005,
+    "durationMinutes": 63,
+    "title": "Lecture 5: Double implication and translations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_006",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10006,
+    "durationMinutes": 107,
+    "title": "Lecture 6: Arguments",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_007",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10007,
+    "durationMinutes": 104,
+    "title": "Lecture 7: Predicate logic part 1",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_008",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10008,
+    "durationMinutes": 133,
+    "title": "Lecture 8: Quantifier properties and translations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_009",
+    "subject": "Discrete Mathematics",
+    "topic": "Logic",
+    "sequence": 10009,
+    "durationMinutes": 151,
+    "title": "Lecture 9: Translations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_010",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10010,
+    "durationMinutes": 108,
+    "title": "Lecture 10: Permutation with unlimited and no repetition",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_011",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10011,
+    "durationMinutes": 118,
+    "title": "Lecture 11: Permutation with limited repetition and 6 constraints",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_012",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10012,
+    "durationMinutes": 124,
+    "title": "Lecture 12: Combination with no and unlimited repetition",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_013",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10013,
+    "durationMinutes": 107,
+    "title": "Lecture 13: Combination with limited repetition / Generating Function",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_014",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10014,
+    "durationMinutes": 106,
+    "title": "Lecture 14: Distribution problems and PIE",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_015",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10015,
+    "durationMinutes": 142,
+    "title": "Lecture 15: Derangements and pigeonhole principle",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_016",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10016,
+    "durationMinutes": 137,
+    "title": "Lecture 16: Binomial summations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_017",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10017,
+    "durationMinutes": 108,
+    "title": "Lecture 17: Generating Functions Part 1",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_018",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10018,
+    "durationMinutes": 119,
+    "title": "Lecture 18: Generating Functions Part 2",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_019",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10019,
+    "durationMinutes": 89,
+    "title": "Lecture 19: Generating Functions Part 3",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_020",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10020,
+    "durationMinutes": 114,
+    "title": "Lecture 20: Recurrence Relations Part 1",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_021",
+    "subject": "Discrete Mathematics",
+    "topic": "Combinatorics",
+    "sequence": 10021,
+    "durationMinutes": 124,
+    "title": "Lecture 21: Recurrence Relations Part 2",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_022",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10022,
+    "durationMinutes": 111,
+    "title": "Lecture 22: Set Theory Introduction",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_023",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10023,
+    "durationMinutes": 120,
+    "title": "Lecture 23: Relations - Domain and Range",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_024",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10024,
+    "durationMinutes": 115,
+    "title": "Lecture 24: Relations Part 2",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_025",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10025,
+    "durationMinutes": 117,
+    "title": "Lecture 25: Reflexive Relations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_026",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10026,
+    "durationMinutes": 128,
+    "title": "Lecture 26: Irreflexive and Symmetric Relations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_027",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10027,
+    "durationMinutes": 109,
+    "title": "Lecture 27: Antisymmetric, Asymmetric and Transitive Relations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_028",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10028,
+    "durationMinutes": 98,
+    "title": "Lecture 28: Counting Relations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_029",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10029,
+    "durationMinutes": 127,
+    "title": "Lecture 29: Closure and Equivalence Relations",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_030",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10030,
+    "durationMinutes": 70,
+    "title": "Lecture 30: Equivalence Relations and Closure Properties",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_031",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10031,
+    "durationMinutes": 127,
+    "title": "Lecture 31: Functions Part 1",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_032",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10032,
+    "durationMinutes": 122,
+    "title": "Lecture 32: Composition and Counting Functions",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_033",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10033,
+    "durationMinutes": 122,
+    "title": "Lecture 33: Group Theory Introduction",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_034",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10034,
+    "durationMinutes": 133,
+    "title": "Lecture 34: Abelian Group and Examples",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_035",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10035,
+    "durationMinutes": 110,
+    "title": "Lecture 35: Properties of Group",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_036",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10036,
+    "durationMinutes": 128,
+    "title": "Lecture 36: Properties of Elements of Group",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_037",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10037,
+    "durationMinutes": 146,
+    "title": "Lecture 37: Cyclic Group",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_038",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10038,
+    "durationMinutes": 121,
+    "title": "Lecture 38: Subgroup, Lagrange Theorem, Poset",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_039",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10039,
+    "durationMinutes": 128,
+    "title": "Lecture 39: Toset, Woset, Toposort, Extremal Elements",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_040",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10040,
+    "durationMinutes": 142,
+    "title": "Lecture 40: Lattice Introduction",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_041",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10041,
+    "durationMinutes": 85,
+    "title": "Lecture 41: Types and Properties of Lattice",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_042",
+    "subject": "Discrete Mathematics",
+    "topic": "Set Theory, Relations, Functions, Groups, Posets, Lattices",
+    "sequence": 10042,
+    "durationMinutes": 108,
+    "title": "Lecture 42: Sub-lattice and Boolean Algebra",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_043",
+    "subject": "Discrete Mathematics",
+    "topic": "Graph Theory",
+    "sequence": 10043,
+    "durationMinutes": 106,
+    "title": "Lecture 43: Introduction to Graphs and Special Graphs",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_044",
+    "subject": "Discrete Mathematics",
+    "topic": "Graph Theory",
+    "sequence": 10044,
+    "durationMinutes": 106,
+    "title": "Lecture 44: Chromatic Number and Diameter",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_045",
+    "subject": "Discrete Mathematics",
+    "topic": "Graph Theory",
+    "sequence": 10045,
+    "durationMinutes": 120,
+    "title": "Lecture 45: Graph Operations and Isomorphism",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_046",
+    "subject": "Discrete Mathematics",
+    "topic": "Graph Theory",
+    "sequence": 10046,
+    "durationMinutes": 114,
+    "title": "Lecture 46: Components, Cut Vertex, Cut Edge, Cut Set",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_047",
+    "subject": "Discrete Mathematics",
+    "topic": "Graph Theory",
+    "sequence": 10047,
+    "durationMinutes": 154,
+    "title": "Lecture 47: Connectivity, Walk, Path, Cycle, Euler Graphs",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_048",
+    "subject": "Discrete Mathematics",
+    "topic": "Graph Theory",
+    "sequence": 10048,
+    "durationMinutes": 145,
+    "title": "Lecture 48: Hamiltonian and Planar Graphs",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_dm_049",
+    "subject": "Discrete Mathematics",
+    "topic": "Graph Theory",
+    "sequence": 10049,
+    "durationMinutes": 144,
+    "title": "Lecture 49: Graph Theory Final Lecture / Practice",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_001",
+    "subject": "Computer Networks",
+    "topic": "IPv4 Addressing",
+    "sequence": 11001,
+    "durationMinutes": 2303,
+    "title": "IPv4 Addressing | 38h 23m 24s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_002",
+    "subject": "Computer Networks",
+    "topic": "Error Control",
+    "sequence": 11002,
+    "durationMinutes": 711,
+    "title": "Error Control | 11h 50m 42s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_003",
+    "subject": "Computer Networks",
+    "topic": "Flow Control",
+    "sequence": 11003,
+    "durationMinutes": 1161,
+    "title": "Flow Control | 19h 20m 57s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_004",
+    "subject": "Computer Networks",
+    "topic": "IPv4 Header Fragmentation",
+    "sequence": 11004,
+    "durationMinutes": 654,
+    "title": "IPv4 Header Fragmentation | 10h 54m 25s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_005",
+    "subject": "Computer Networks",
+    "topic": "TCP UDP",
+    "sequence": 11005,
+    "durationMinutes": 1315,
+    "title": "TCP UDP | 21h 54m 31s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_006",
+    "subject": "Computer Networks",
+    "topic": "Medium Access Control",
+    "sequence": 11006,
+    "durationMinutes": 661,
+    "title": "Medium Access Control | 11h 0m 57s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_007",
+    "subject": "Computer Networks",
+    "topic": "Routing Protocols",
+    "sequence": 11007,
+    "durationMinutes": 333,
+    "title": "Routing Protocols | 5h 33m 9s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_008",
+    "subject": "Computer Networks",
+    "topic": "Switching",
+    "sequence": 11008,
+    "durationMinutes": 258,
+    "title": "Switching | 4h 18m 15s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_009",
+    "subject": "Computer Networks",
+    "topic": "Application Layer Protocol",
+    "sequence": 11009,
+    "durationMinutes": 204,
+    "title": "Application Layer Protocol | 3h 24m 16s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_010",
+    "subject": "Computer Networks",
+    "topic": "IP Support Protocol",
+    "sequence": 11010,
+    "durationMinutes": 221,
+    "title": "IP Support Protocol | 3h 41m 22s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_cn_011",
+    "subject": "Computer Networks",
+    "topic": "OSI and TCP/IP Stack",
+    "sequence": 11011,
+    "durationMinutes": 73,
+    "title": "OSI and TCP/IP Stack | 1h 13m 14s",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Creator Recommended"
+  },
+  {
+    "id": "creator_block_001",
+    "subject": "C Programming",
+    "topic": "Basics, operators, control flow",
+    "sequence": 12001,
+    "durationMinutes": 180,
+    "title": "Basics, operators, control flow | 3h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_002",
+    "subject": "C Programming",
+    "topic": "Loops and functions",
+    "sequence": 12002,
+    "durationMinutes": 180,
+    "title": "Loops and functions | 3h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_003",
+    "subject": "C Programming",
+    "topic": "Arrays and strings",
+    "sequence": 12003,
+    "durationMinutes": 240,
+    "title": "Arrays and strings | 4h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_004",
+    "subject": "C Programming",
+    "topic": "Pointers",
+    "sequence": 12004,
+    "durationMinutes": 240,
+    "title": "Pointers | 4h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_005",
+    "subject": "C Programming",
+    "topic": "Structures, unions, files",
+    "sequence": 12005,
+    "durationMinutes": 120,
+    "title": "Structures, unions, files | 2h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_006",
+    "subject": "C Programming",
+    "topic": "PYQ and practice",
+    "sequence": 12006,
+    "durationMinutes": 120,
+    "title": "PYQ and practice | 2h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_007",
+    "subject": "Data Structure",
+    "topic": "Arrays, strings, linked lists",
+    "sequence": 12007,
+    "durationMinutes": 300,
+    "title": "Arrays, strings, linked lists | 5h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_008",
+    "subject": "Data Structure",
+    "topic": "Stacks and queues",
+    "sequence": 12008,
+    "durationMinutes": 240,
+    "title": "Stacks and queues | 4h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_009",
+    "subject": "Data Structure",
+    "topic": "Trees and BST",
+    "sequence": 12009,
+    "durationMinutes": 300,
+    "title": "Trees and BST | 5h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_010",
+    "subject": "Data Structure",
+    "topic": "Graphs basics",
+    "sequence": 12010,
+    "durationMinutes": 240,
+    "title": "Graphs basics | 4h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_011",
+    "subject": "Data Structure",
+    "topic": "Hashing",
+    "sequence": 12011,
+    "durationMinutes": 180,
+    "title": "Hashing | 3h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_012",
+    "subject": "Data Structure",
+    "topic": "Heaps",
+    "sequence": 12012,
+    "durationMinutes": 120,
+    "title": "Heaps | 2h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_013",
+    "subject": "Data Structure",
+    "topic": "PYQ and practice",
+    "sequence": 12013,
+    "durationMinutes": 180,
+    "title": "PYQ and practice | 3h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "Revision Only"
+  },
+  {
+    "id": "creator_block_014",
+    "subject": "Operating System",
+    "topic": "Process Management",
+    "sequence": 12014,
+    "durationMinutes": 300,
+    "title": "Process Management | 5h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_015",
+    "subject": "Operating System",
+    "topic": "CPU Scheduling",
+    "sequence": 12015,
+    "durationMinutes": 240,
+    "title": "CPU Scheduling | 4h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_016",
+    "subject": "Operating System",
+    "topic": "Deadlocks",
+    "sequence": 12016,
+    "durationMinutes": 240,
+    "title": "Deadlocks | 4h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_017",
+    "subject": "Operating System",
+    "topic": "Memory Management basics",
+    "sequence": 12017,
+    "durationMinutes": 300,
+    "title": "Memory Management basics | 5h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_018",
+    "subject": "Operating System",
+    "topic": "Paging and Segmentation",
+    "sequence": 12018,
+    "durationMinutes": 360,
+    "title": "Paging and Segmentation | 6h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_019",
+    "subject": "Operating System",
+    "topic": "Virtual Memory",
+    "sequence": 12019,
+    "durationMinutes": 300,
+    "title": "Virtual Memory | 5h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_020",
+    "subject": "Operating System",
+    "topic": "File Systems",
+    "sequence": 12020,
+    "durationMinutes": 300,
+    "title": "File Systems | 5h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_021",
+    "subject": "Operating System",
+    "topic": "Disk Scheduling",
+    "sequence": 12021,
+    "durationMinutes": 180,
+    "title": "Disk Scheduling | 3h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_022",
+    "subject": "Operating System",
+    "topic": "Synchronization",
+    "sequence": 12022,
+    "durationMinutes": 300,
+    "title": "Synchronization | 5h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  },
+  {
+    "id": "creator_block_023",
+    "subject": "Operating System",
+    "topic": "PYQ and practice",
+    "sequence": 12023,
+    "durationMinutes": 180,
+    "title": "PYQ and practice | 3h",
+    "provider": "Creator Recommended - Sambhu",
+    "category": "NITC Important"
+  }
+]

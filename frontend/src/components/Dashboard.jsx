@@ -121,7 +121,7 @@ export default function Dashboard({ onNavigateToTab, onSelectTopic }) {
           <div className="text-[10px] text-cyber-gold font-black uppercase tracking-widest">NITC Self Sponsored Phase 1</div>
           <div className="text-2xl font-extrabold text-white mt-2">Deadline: 10 Jul 2026</div>
           <div className="text-xs text-gray-400 mt-2">
-            DBMS, C, Algorithm, DS, Discrete Maths, and Engineering Maths. OS/CN stay manual until Phase 2.
+            DBMS, C, Algorithm, DS, Discrete Maths, Engineering Maths, and OS. CN stays after Phase 1 unless added manually.
           </div>
           <div className="mt-3 text-sm font-bold text-cyber-primary">
             {stats.phaseSummary?.remainingPhaseOne ?? 0} Phase 1 tasks left
