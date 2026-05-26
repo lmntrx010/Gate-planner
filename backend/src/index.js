@@ -1307,17 +1307,26 @@ app.get('/api/subjects', async (req, res) => {
   try {
     const subjects = await dbAll('SELECT * FROM subjects');
     const topics = await dbAll('SELECT * FROM topics');
+    const learningItems = await dbAll('SELECT * FROM learning_items');
+    const progressRows = await dbAll(
+      `SELECT topic_id, learning_item_id FROM topic_progress
+       WHERE user_id = ? AND status IN ('completed', 'skimmed')`,
+      [userId]
+    );
+    const completedTopicIds = new Set(progressRows.map(row => row.topic_id).filter(Boolean));
+    const completedItemIds = new Set(progressRows.map(row => row.learning_item_id).filter(Boolean));
     
     const profile = await dbGet('SELECT completed_topics FROM user_profile WHERE user_id = ?', [userId]);
     const completedList = JSON.parse((profile && profile.completed_topics) || '[]');
 
     const results = subjects.map(sub => {
       const subTopics = topics.filter(t => t.subject_id === sub.id);
-      const totalTopicsCount = subTopics.length;
+      const subItems = learningItems.filter(item => item.subject_id === sub.id);
+      const totalTopicsCount = subTopics.length + subItems.length;
       
-      const completedCount = subTopics.filter(t => 
-        completedList.some(comp => comp.toLowerCase() === t.name.toLowerCase())
-      ).length;
+      const completedCount =
+        subTopics.filter(t => completedTopicIds.has(t.id) || completedList.some(comp => comp.toLowerCase() === t.name.toLowerCase())).length +
+        subItems.filter(item => completedItemIds.has(item.id)).length;
 
       const completionRate = totalTopicsCount > 0 ? Math.round((completedCount / totalTopicsCount) * 100) : 0;
 
@@ -1328,6 +1337,8 @@ app.get('/api/subjects', async (req, res) => {
         difficulty: sub.difficulty,
         totalTopics: totalTopicsCount,
         completedTopicsCount: completedCount,
+        totalVideos: subItems.length,
+        completedVideos: subItems.filter(item => completedItemIds.has(item.id)).length,
         completionRate: completionRate
       };
     });
@@ -1742,6 +1753,51 @@ app.post('/api/learning-items', async (req, res) => {
   }
 });
 
+app.post('/api/learning-items/bulk', async (req, res) => {
+  const userId = getAuthUser(req);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
+
+  const { subjectId, items = [], provider = 'Custom Upload', category = 'Uploaded Video' } = req.body || {};
+  if (!subjectId || !Array.isArray(items)) {
+    return res.status(400).json({ error: 'subjectId and items are required.' });
+  }
+
+  try {
+    const subject = await dbGet('SELECT * FROM subjects WHERE id = ?', [subjectId]);
+    if (!subject) return res.status(404).json({ error: 'Subject not found.' });
+    const maxRow = await dbGet('SELECT MAX(sequence) as maxSeq FROM learning_items WHERE subject_id = ?', [subjectId]);
+    let sequence = maxRow?.maxSeq || 9000;
+    let inserted = 0;
+
+    for (const item of items.slice(0, 300)) {
+      const title = String(item.title || '').trim();
+      if (!title) continue;
+      sequence += 1;
+      const itemId = `upload_${userId}_${subjectId}_${toSlug(title)}_${crypto.randomBytes(3).toString('hex')}`;
+      await dbRun(
+        `INSERT INTO learning_items (id, subject_id, topic_id, title, provider, duration_minutes, sequence, source_url, category)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          itemId,
+          subjectId,
+          item.topicId || '',
+          title,
+          provider,
+          Math.max(5, parseInt(item.durationMinutes || item.plannedMinutes || 60, 10)),
+          sequence,
+          item.sourceUrl || '',
+          category
+        ]
+      );
+      inserted += 1;
+    }
+
+    res.json({ success: true, inserted });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/calendar/suggestions', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
@@ -1898,6 +1954,104 @@ function coerceWeeklyPlan(rawPlan, weekDates) {
   };
 }
 
+function getDailyCapacity(date, dailyHours = {}) {
+  const fromPayload = Number(dailyHours[date]);
+  if (fromPayload > 0) return Math.round(fromPayload * 60);
+  return isWeekendDate(date) ? 360 : 180;
+}
+
+async function scheduleWeeklyTasksAcrossCapacity({ userId, weekStart, days, replaceAuto, dailyHours = {} }) {
+  const requestedDates = weekDatesFrom(weekStart);
+  const weekEnd = requestedDates[6];
+  const { subjects } = await getCatalogMaps();
+  const subjectByName = new Map(subjects.map(subject => [subject.name.toLowerCase(), subject]));
+
+  if (replaceAuto) {
+    await dbRun(
+      `DELETE FROM study_plan
+       WHERE user_id = ?
+         AND date >= ?
+         AND date <= ?
+         AND completed = 0
+         AND source IN ('catalog', 'video', 'ai_weekly', 'weekly_manual')`,
+      [userId, weekStart, weekEnd]
+    );
+  }
+
+  const plannedByDate = new Map();
+  const existing = await dbAll(
+    'SELECT date, planned_minutes, duration FROM study_plan WHERE user_id = ? AND date >= ? AND completed = 0',
+    [userId, weekStart]
+  );
+  existing.forEach(task => {
+    const minutes = task.planned_minutes || Math.round((task.duration || 0) * 60);
+    plannedByDate.set(task.date, (plannedByDate.get(task.date) || 0) + minutes);
+  });
+
+  const queue = [];
+  days.forEach(day => {
+    (day.tasks || []).forEach(task => {
+      queue.push({
+        requestedDate: day.date,
+        ...task,
+        plannedMinutes: Math.max(15, parseInt(task.plannedMinutes || 60, 10))
+      });
+    });
+  });
+
+  let inserted = 0;
+  let overflowed = 0;
+  const placements = [];
+  let cursor = weekStart;
+
+  for (const rawTask of queue) {
+    cursor = rawTask.requestedDate && rawTask.requestedDate > cursor ? rawTask.requestedDate : cursor;
+    let minutesLeft = rawTask.plannedMinutes;
+    let part = 1;
+    const totalParts = Math.max(1, Math.ceil(minutesLeft / Math.max(60, getDailyCapacity(cursor, dailyHours))));
+
+    while (minutesLeft > 0) {
+      const capacity = getDailyCapacity(cursor, dailyHours);
+      const used = plannedByDate.get(cursor) || 0;
+      const available = Math.max(0, capacity - used);
+      if (available < 15) {
+        cursor = addDays(cursor, 1);
+        if (cursor > weekEnd) overflowed += 1;
+        continue;
+      }
+
+      const chunk = Math.min(minutesLeft, available);
+      const subject = subjectByName.get(String(rawTask.subject || '').toLowerCase());
+      const topic = rawTask.topicId ? await dbGet('SELECT * FROM topics WHERE id = ?', [rawTask.topicId]) : null;
+      const item = rawTask.learningItemId ? await dbGet('SELECT * FROM learning_items WHERE id = ?', [rawTask.learningItemId]) : null;
+      const title = totalParts > 1 ? `${rawTask.title || item?.title || topic?.name || 'Weekly Study Task'} (${part}/${totalParts})` : rawTask.title || item?.title || topic?.name || 'Weekly Study Task';
+      const taskId = await insertStudyTask(userId, cursor, {
+        phaseId: cursor <= '2026-07-10' ? `${userId}_nitc_phase1` : `${userId}_phase2`,
+        topicId: topic?.id || item?.topic_id || rawTask.topicId || '',
+        learningItemId: item?.id || rawTask.learningItemId || '',
+        subject: subject?.name || rawTask.subject || 'Weekly Study',
+        topicName: title,
+        type: rawTask.mode === 'revision' ? 'revision' : rawTask.mode === 'pyq' ? 'pyq' : 'study',
+        plannedMinutes: plannedMinutesForMode(chunk, rawTask.mode || 'full'),
+        mode: rawTask.mode || 'full',
+        source: rawTask.source === 'custom' ? 'weekly_manual' : 'ai_weekly',
+        difficulty: topic?.difficulty || '',
+        resourceLink: topic?.resource_link || item?.source_url || '',
+        description: cursor > weekEnd ? 'Overflow from weekly preparation planner.' : 'Added from weekly preparation planner.'
+      });
+
+      inserted += 1;
+      placements.push({ taskId, requestedDate: rawTask.requestedDate, date: cursor, overflowed: cursor > weekEnd });
+      plannedByDate.set(cursor, used + chunk);
+      minutesLeft -= chunk;
+      part += 1;
+      if (minutesLeft > 0) cursor = addDays(cursor, 1);
+    }
+  }
+
+  return { inserted, overflowed, placements };
+}
+
 app.post('/api/calendar/weekly-ai-suggest', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
@@ -2008,54 +2162,12 @@ app.post('/api/calendar/apply-week-plan', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
 
-  const { weekStart, days = [], replaceAuto = true } = req.body || {};
+  const { weekStart, days = [], replaceAuto = true, dailyHours = {} } = req.body || {};
   if (!weekStart || !Array.isArray(days)) return res.status(400).json({ error: 'weekStart and days are required.' });
 
   try {
-    const weekDates = weekDatesFrom(weekStart);
-    const weekEnd = weekDates[6];
-    const { subjects } = await getCatalogMaps();
-    const subjectByName = new Map(subjects.map(subject => [subject.name.toLowerCase(), subject]));
-
-    if (replaceAuto) {
-      await dbRun(
-        `DELETE FROM study_plan
-         WHERE user_id = ?
-           AND date >= ?
-           AND date <= ?
-           AND completed = 0
-           AND source IN ('catalog', 'video', 'ai_weekly')`,
-        [userId, weekStart, weekEnd]
-      );
-    }
-
-    let inserted = 0;
-    for (const day of days) {
-      if (!weekDates.includes(day.date)) continue;
-      for (const task of day.tasks || []) {
-        const subject = subjectByName.get(String(task.subject || '').toLowerCase());
-        const topic = task.topicId ? await dbGet('SELECT * FROM topics WHERE id = ?', [task.topicId]) : null;
-        const item = task.learningItemId ? await dbGet('SELECT * FROM learning_items WHERE id = ?', [task.learningItemId]) : null;
-        const subjectName = subject?.name || task.subject || 'Weekly Study';
-        await insertStudyTask(userId, day.date, {
-          phaseId: day.date <= '2026-07-10' ? `${userId}_nitc_phase1` : `${userId}_phase2`,
-          topicId: topic?.id || item?.topic_id || task.topicId || '',
-          learningItemId: item?.id || task.learningItemId || '',
-          subject: subjectName,
-          topicName: task.title || item?.title || topic?.name || 'Weekly Study Task',
-          type: task.mode === 'revision' ? 'revision' : task.mode === 'pyq' ? 'pyq' : 'study',
-          plannedMinutes: plannedMinutesForMode(parseInt(task.plannedMinutes || 60, 10), task.mode || 'full'),
-          mode: task.mode || 'full',
-          source: 'ai_weekly',
-          difficulty: topic?.difficulty || '',
-          resourceLink: topic?.resource_link || item?.source_url || '',
-          description: 'Added from weekly preparation planner.'
-        });
-        inserted += 1;
-      }
-    }
-
-    res.json({ success: true, inserted });
+    const result = await scheduleWeeklyTasksAcrossCapacity({ userId, weekStart, days, replaceAuto, dailyHours });
+    res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2300,17 +2412,26 @@ app.get('/api/dashboard/stats', async (req, res) => {
     // Calculate subject-wise completion rates
     const subjects = await dbAll('SELECT * FROM subjects');
     const completedList = JSON.parse(user.completed_topics || '[]');
+    const learningItems = await dbAll('SELECT * FROM learning_items');
+    const progressRows = await dbAll(
+      `SELECT topic_id, learning_item_id FROM topic_progress
+       WHERE user_id = ? AND status IN ('completed', 'skimmed')`,
+      [userId]
+    );
+    const completedTopicIds = new Set(progressRows.map(row => row.topic_id).filter(Boolean));
+    const completedItemIds = new Set(progressRows.map(row => row.learning_item_id).filter(Boolean));
 
     const subjectMetrics = subjects.map(sub => {
       const subTopics = topics.filter(t => t.subject_id === sub.id);
-      const totalCount = subTopics.length;
+      const subItems = learningItems.filter(item => item.subject_id === sub.id);
+      const totalCount = subTopics.length + subItems.length;
       const loggedMinutes = timeLogs
         .filter(log => log.subject === sub.name)
         .reduce((sum, log) => sum + (log.minutes || 0), 0);
       
-      const compCount = subTopics.filter(t => 
-        completedList.some(comp => comp.toLowerCase() === t.name.toLowerCase())
-      ).length;
+      const compCount =
+        subTopics.filter(t => completedTopicIds.has(t.id) || completedList.some(comp => comp.toLowerCase() === t.name.toLowerCase())).length +
+        subItems.filter(item => completedItemIds.has(item.id)).length;
 
       return {
         subject: sub.name,

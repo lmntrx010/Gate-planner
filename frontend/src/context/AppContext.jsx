@@ -362,6 +362,25 @@ export function AppProvider({ children }) {
     }
   };
 
+  const bulkCreateLearningItems = async (payload) => {
+    if (!userToken) return;
+    try {
+      const res = await authFetch(`${API_BASE}/learning-items/bulk`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchSubjects();
+        await fetchDashboardStats();
+      }
+      return data;
+    } catch (err) {
+      console.error('Failed to upload learning items:', err);
+      return { error: err.message };
+    }
+  };
+
   const addCalendarTask = async (payload) => {
     if (!userToken) return;
     try {
@@ -499,6 +518,7 @@ export function AppProvider({ children }) {
       dragReschedule,
       fetchLearningItems,
       fetchCalendarSuggestions,
+      bulkCreateLearningItems,
       addCalendarTask,
       suggestWeeklyPlan,
       applyWeeklyPlan,

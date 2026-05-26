@@ -13,6 +13,7 @@ export default function Calendar({ onSelectTopic }) {
     adaptiveReschedule,
     fetchLearningItems,
     fetchCalendarSuggestions,
+    bulkCreateLearningItems,
     addCalendarTask,
     suggestWeeklyPlan,
     applyWeeklyPlan,
@@ -34,6 +35,7 @@ export default function Calendar({ onSelectTopic }) {
   const [weeklyDraft, setWeeklyDraft] = useState(null);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const [weeklyError, setWeeklyError] = useState('');
+  const [weeklyNotice, setWeeklyNotice] = useState('');
 
   // Group task lists into blocks of 7 days (weeks) for easy navigation
   const weeks = [];
@@ -270,6 +272,8 @@ export default function Calendar({ onSelectTopic }) {
     return tasks;
   };
 
+  const subjectIdByName = (name) => subjects.find(subject => subject.name === name)?.id || subjects[0]?.id || '';
+
   const addBulkTopicsToDay = (date) => {
     updateWeeklyDay(date, day => {
       const parsed = parseBulkTopics(day.bulkText, day.draft.subject);
@@ -280,6 +284,31 @@ export default function Calendar({ onSelectTopic }) {
         bulkText: ''
       };
     });
+  };
+
+  const uploadBulkTopicsForSubject = async (date) => {
+    const day = weeklyDraft?.days.find(entry => entry.date === date);
+    if (!day) return;
+    const parsed = parseBulkTopics(day.bulkText, day.draft.subject);
+    if (parsed.length === 0) return;
+    setWeeklyLoading(true);
+    setWeeklyError('');
+    setWeeklyNotice('');
+    const result = await bulkCreateLearningItems({
+      subjectId: subjectIdByName(day.draft.subject),
+      provider: 'User Upload',
+      category: 'Uploaded Video',
+      items: parsed.map(task => ({
+        title: task.title,
+        durationMinutes: task.plannedMinutes
+      }))
+    });
+    setWeeklyLoading(false);
+    if (!result?.success) {
+      setWeeklyError(result?.error || 'Could not upload videos for this subject.');
+      return;
+    }
+    setWeeklyNotice(`Uploaded ${result.inserted} videos to ${day.draft.subject}.`);
   };
 
   const updateWeeklyDay = (date, updater) => {
@@ -339,11 +368,16 @@ export default function Calendar({ onSelectTopic }) {
     const result = await applyWeeklyPlan({
       weekStart: weeklyDraft.weekStart,
       replaceAuto: weeklyDraft.replaceAuto,
+      dailyHours: Object.fromEntries(weeklyDraft.days.map(day => [day.date, Number(day.hours || 0)])),
       days: weeklyDraft.days.map(day => ({ date: day.date, tasks: day.tasks }))
     });
     setWeeklyLoading(false);
     if (!result?.success) {
       setWeeklyError(result?.error || 'Could not save weekly plan.');
+      return;
+    }
+    if (result.overflowed > 0) {
+      setWeeklyNotice(`${result.overflowed} topic block(s) overflowed into future weeks.`);
       return;
     }
     setWeeklyDraft(null);
@@ -1184,6 +1218,14 @@ export default function Calendar({ onSelectTopic }) {
                   </button>
                   <button
                     type="button"
+                    onClick={() => uploadBulkTopicsForSubject(day.date)}
+                    disabled={weeklyLoading}
+                    className="w-full rounded-lg border border-cyber-gold/30 bg-cyber-gold/10 py-2 text-[10px] font-bold text-cyber-gold hover:bg-cyber-gold/20 disabled:opacity-50"
+                  >
+                    Save As Subject Videos
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => addWeeklyManualTask(day.date)}
                     className="w-full rounded-lg border border-cyber-primary/30 bg-cyber-primary/10 py-2 text-[10px] font-bold text-cyber-primary hover:bg-cyber-primary/20"
                   >
@@ -1205,6 +1247,9 @@ export default function Calendar({ onSelectTopic }) {
 
             {weeklyError && (
               <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">{weeklyError}</div>
+            )}
+            {weeklyNotice && (
+              <div className="rounded-lg border border-cyber-emerald/40 bg-cyber-emerald/10 px-3 py-2 text-xs text-cyber-emerald">{weeklyNotice}</div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
