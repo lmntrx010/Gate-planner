@@ -178,7 +178,7 @@ function MainAppLayout() {
                     onClick={() => handleExport('csv')}
                     className="w-full text-left py-3 px-4 text-xs font-bold text-gray-300 hover:bg-gray-900 transition flex items-center gap-2"
                   >
-                    <Download className="w-4 h-4 text-emerald-400" /> Excel Spreadsheet (CSV)
+                    <Download className="w-4 h-4 text-emerald-400" /> Excel Status Sheet
                   </button>
                   
                   <button

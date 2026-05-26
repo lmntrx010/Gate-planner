@@ -2583,18 +2583,26 @@ app.get('/api/export/csv', async (req, res) => {
         daysMap[task.date] = { date: task.date, dayOfWeek: new Date(task.date).toLocaleDateString('en-US', { weekday: 'long' }), tasks: [] };
       }
       daysMap[task.date].tasks.push({
+        phaseId: task.phase_id,
         subject: task.subject,
         topicName: task.topic_name,
         type: task.task_type,
         duration: task.duration,
+        plannedMinutes: task.planned_minutes || Math.round((task.duration || 0) * 60),
+        actualMinutes: task.actual_minutes || 0,
+        status: task.status || (task.completed === 1 ? 'completed' : 'planned'),
+        mode: task.mode || '',
+        source: task.source || '',
         difficulty: task.difficulty,
         resourceLink: task.resource_link,
+        description: task.description,
+        completedAt: task.completed_at,
         completed: task.completed === 1
       });
     });
 
     const csvContent = exportToCSV(Object.values(daysMap));
-    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename=gate_study_planner_${userId}.csv`);
     res.send(csvContent);
   } catch (err) {

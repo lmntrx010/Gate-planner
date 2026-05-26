@@ -9,22 +9,85 @@
  */
 function exportToCSV(calendarData) {
   console.log('[Export System] Formatting calendar into CSV...');
-  let csv = 'Date,Day of Week,Subject,Topic,Task Type,Duration (Hours),Difficulty,Status,Resource Link\n';
+  const headers = [
+    'Date',
+    'Day of Week',
+    'Phase',
+    'Subject',
+    'Topic / Resource',
+    'Task Type',
+    'Mode',
+    'Status',
+    'Completion State',
+    'Planned Minutes',
+    'Planned Hours',
+    'Actual Minutes',
+    'Actual Hours',
+    'Completed At',
+    'Source',
+    'Difficulty',
+    'Resource Link',
+    'Description'
+  ];
+  let csv = '\ufeff' + headers.join(',') + '\n';
+
+  const cell = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
   calendarData.forEach(day => {
     if (day.tasks.length === 0) {
-      csv += `"${day.date}","${day.dayOfWeek}","Rest Day","No tasks scheduled","rest",0,"","Completed",""\n`;
+      csv += [
+        cell(day.date),
+        cell(day.dayOfWeek),
+        cell(''),
+        cell('Rest Day'),
+        cell('No tasks scheduled'),
+        cell('rest'),
+        cell(''),
+        cell('done'),
+        cell('Done'),
+        0,
+        0,
+        0,
+        0,
+        cell(''),
+        cell(''),
+        cell(''),
+        cell(''),
+        cell('')
+      ].join(',') + '\n';
     } else {
       day.tasks.forEach(task => {
-        const subject = (task.subject || '').replace(/"/g, '""');
-        const name = (task.topicName || '').replace(/"/g, '""');
-        const type = task.type || 'study';
-        const duration = task.duration || 0;
-        const difficulty = task.difficulty || '';
-        const status = task.completed ? 'Completed' : 'Pending';
-        const link = task.resourceLink || '';
-        
-        csv += `"${day.date}","${day.dayOfWeek}","${subject}","${name}","${type}",${duration},"${difficulty}","${status}","${link}"\n`;
+        const plannedMinutes = task.plannedMinutes || Math.round((task.duration || 0) * 60);
+        const actualMinutes = task.actualMinutes || 0;
+        const normalizedStatus = task.completed ? 'done' : (task.status || 'planned');
+        const completionState = task.completed
+          ? 'Done'
+          : normalizedStatus === 'in_progress'
+            ? 'In Progress'
+            : normalizedStatus === 'skimmed'
+              ? 'Skimmed'
+              : 'Planned';
+
+        csv += [
+          cell(day.date),
+          cell(day.dayOfWeek),
+          cell(task.phaseId || ''),
+          cell(task.subject || ''),
+          cell(task.topicName || ''),
+          cell(task.type || 'study'),
+          cell(task.mode || ''),
+          cell(normalizedStatus),
+          cell(completionState),
+          plannedMinutes,
+          (plannedMinutes / 60).toFixed(2),
+          actualMinutes,
+          (actualMinutes / 60).toFixed(2),
+          cell(task.completedAt || ''),
+          cell(task.source || ''),
+          cell(task.difficulty || ''),
+          cell(task.resourceLink || ''),
+          cell(task.description || '')
+        ].join(',') + '\n';
       });
     }
   });
