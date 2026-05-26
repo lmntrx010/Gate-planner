@@ -229,13 +229,18 @@ export function AppProvider({ children }) {
         body: JSON.stringify({ taskId, completed, completedDate, actualMinutes, mode })
       });
       const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Could not update task completion.');
+      }
       if (data.success) {
         await fetchCalendar();
         await fetchDashboardStats();
         await fetchAiMotivation();
       }
+      return data;
     } catch (err) {
       console.error('Failed to toggle task completion:', err);
+      return { success: false, error: err.message };
     }
   };
 

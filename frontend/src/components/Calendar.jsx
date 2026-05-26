@@ -26,6 +26,8 @@ export default function Calendar({ onSelectTopic }) {
   const [hoveredTask, setHoveredTask] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const [completionDraft, setCompletionDraft] = useState(null);
+  const [completionSaving, setCompletionSaving] = useState(false);
+  const [completionError, setCompletionError] = useState('');
   const [addDraft, setAddDraft] = useState(null);
   const [subjectTopics, setSubjectTopics] = useState([]);
   const [learningItems, setLearningItems] = useState([]);
@@ -197,7 +199,14 @@ export default function Calendar({ onSelectTopic }) {
 
   const submitCompletionDraft = async () => {
     if (!completionDraft) return;
-    await toggleTaskComplete(completionDraft.task.id, true, completionDraft.completedDate);
+    setCompletionSaving(true);
+    setCompletionError('');
+    const result = await toggleTaskComplete(completionDraft.task.id, true, completionDraft.completedDate);
+    setCompletionSaving(false);
+    if (!result?.success) {
+      setCompletionError(result?.error || 'Could not save completion date.');
+      return;
+    }
     setCompletionDraft(null);
   };
 
@@ -1328,10 +1337,16 @@ export default function Calendar({ onSelectTopic }) {
             <button
               type="button"
               onClick={submitCompletionDraft}
-              className="w-full mt-5 flex items-center justify-center gap-2 py-3 rounded-lg bg-cyber-emerald hover:bg-emerald-600 text-white text-sm font-bold transition shadow-glow-emerald"
+              disabled={completionSaving}
+              className="w-full mt-5 flex items-center justify-center gap-2 py-3 rounded-lg bg-cyber-emerald hover:bg-emerald-600 disabled:opacity-50 text-white text-sm font-bold transition shadow-glow-emerald"
             >
-              <Check className="w-4 h-4" /> Save Completion Date
+              <Check className="w-4 h-4" /> {completionSaving ? 'Saving...' : 'Save Completion Date'}
             </button>
+            {completionError && (
+              <div className="mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                {completionError}
+              </div>
+            )}
           </div>
         </div>
       )}

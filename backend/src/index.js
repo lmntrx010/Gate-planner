@@ -1567,11 +1567,20 @@ app.post('/api/calendar/toggle-complete', async (req, res) => {
         [1, finishDate, finishDate, mode === 'skim' ? 'skimmed' : 'completed', mode || task.mode || 'full', minutes, taskId, userId]
       );
       await upsertTopicProgress(userId, task, mode === 'skim' ? 'skimmed' : 'completed', mode || task.mode || 'full');
-      refilled = await removeFutureDuplicatesAndRefill(userId, task, finishDate, originalDate);
+      try {
+        refilled = await removeFutureDuplicatesAndRefill(userId, task, finishDate, originalDate);
+      } catch (refillErr) {
+        console.error('[Completion] Saved completion but dynamic refill failed:', refillErr.message);
+      }
 
       const profile = await dbGet('SELECT completed_topics FROM user_profile WHERE user_id = ?', [userId]);
       if (profile && task.task_type === 'study') {
-        const completedTopics = JSON.parse(profile.completed_topics || '[]');
+        let completedTopics = [];
+        try {
+          completedTopics = JSON.parse(profile.completed_topics || '[]');
+        } catch (parseErr) {
+          completedTopics = [];
+        }
         if (!completedTopics.some(topic => topic.toLowerCase() === task.topic_name.toLowerCase())) {
           completedTopics.push(task.topic_name);
           await dbRun('UPDATE user_profile SET completed_topics = ? WHERE user_id = ?', [JSON.stringify(completedTopics), userId]);
