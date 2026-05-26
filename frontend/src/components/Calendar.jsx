@@ -65,6 +65,7 @@ export default function Calendar({ onSelectTopic }) {
       date,
       hours: day === 0 || day === 6 ? 6 : 3,
       tasks: [],
+      bulkText: '',
       draft: {
         subject: subjects[0]?.name || '',
         title: '',
@@ -219,6 +220,66 @@ export default function Calendar({ onSelectTopic }) {
       days: buildWeekDays(weekStart)
     });
     setWeeklyError('');
+  };
+
+  const parseDurationToMinutes = (text) => {
+    const value = String(text || '').trim().toLowerCase();
+    if (!value) return 60;
+    const colon = value.match(/(\d{1,2}):(\d{2})(?::\d{2})?/);
+    if (colon) {
+      const first = parseInt(colon[1], 10);
+      const second = parseInt(colon[2], 10);
+      return Math.max(5, first * 60 + second);
+    }
+    const hours = value.match(/(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hour|hours)/);
+    const minutes = value.match(/(\d+)\s*(?:m|min|mins|minute|minutes)/);
+    const total = Math.round((hours ? parseFloat(hours[1]) * 60 : 0) + (minutes ? parseInt(minutes[1], 10) : 0));
+    if (total > 0) return total;
+    const plain = value.match(/\b(\d{2,3})\b/);
+    return plain ? Math.max(5, parseInt(plain[1], 10)) : 60;
+  };
+
+  const parseBulkTopics = (text, subject) => {
+    const lines = String(text || '')
+      .split(/\n+/)
+      .map(line => line.trim())
+      .filter(Boolean);
+    const tasks = [];
+
+    lines.forEach(line => {
+      const withoutIndex = line.replace(/^\s*(?:\d+[\).\-\s]+|[-*]\s+)/, '').trim();
+      const durationMatch = withoutIndex.match(/(\d{1,2}:\d{2}(?::\d{2})?|\d+(?:\.\d+)?\s*(?:h|hr|hrs|hour|hours)(?:\s*\d+\s*(?:m|min|mins|minute|minutes))?|\d+\s*(?:m|min|mins|minute|minutes))\s*$/i);
+      const plannedMinutes = parseDurationToMinutes(durationMatch?.[1] || '');
+      const title = (durationMatch ? withoutIndex.slice(0, durationMatch.index) : withoutIndex)
+        .replace(/\s*[-|–—,:]\s*$/, '')
+        .trim();
+
+      if (title) {
+        tasks.push({
+          subject: subject || subjects[0]?.name || 'Weekly Study',
+          title,
+          plannedMinutes,
+          mode: 'full',
+          source: 'custom',
+          topicId: '',
+          learningItemId: ''
+        });
+      }
+    });
+
+    return tasks;
+  };
+
+  const addBulkTopicsToDay = (date) => {
+    updateWeeklyDay(date, day => {
+      const parsed = parseBulkTopics(day.bulkText, day.draft.subject);
+      if (parsed.length === 0) return day;
+      return {
+        ...day,
+        tasks: [...day.tasks, ...parsed],
+        bulkText: ''
+      };
+    });
   };
 
   const updateWeeklyDay = (date, updater) => {
@@ -1108,6 +1169,19 @@ export default function Calendar({ onSelectTopic }) {
                     placeholder="Topic/video"
                     className="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white"
                   />
+                  <textarea
+                    value={day.bulkText}
+                    onChange={(e) => updateWeeklyDay(day.date, current => ({ ...current, bulkText: e.target.value }))}
+                    placeholder={'Paste topics + lengths\nL06 Time Complexity 2:33:30\nSorting Techniques - 2h 08m'}
+                    className="w-full h-24 bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white resize-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => addBulkTopicsToDay(day.date)}
+                    className="w-full rounded-lg border border-cyber-emerald/30 bg-cyber-emerald/10 py-2 text-[10px] font-bold text-cyber-emerald hover:bg-cyber-emerald/20"
+                  >
+                    Parse Pasted List
+                  </button>
                   <button
                     type="button"
                     onClick={() => addWeeklyManualTask(day.date)}
