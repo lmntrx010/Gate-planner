@@ -145,10 +145,15 @@ export function AppProvider({ children }) {
     try {
       const res = await authFetch(`${API_BASE}/profile`);
       const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Could not load profile.');
+      }
       setProfile(data);
       return data;
     } catch (err) {
       console.error('Failed to fetch user profile:', err);
+      setProfile(null);
+      throw err;
     }
   };
 
@@ -484,11 +489,15 @@ export function AppProvider({ children }) {
         return;
       }
       setLoading(true);
-      await fetchProfile();
-      await fetchSubjects();
-      await fetchCalendar();
-      await fetchDashboardStats();
-      await fetchAiMotivation();
+      try {
+        await fetchProfile();
+        await fetchSubjects();
+        await fetchCalendar();
+        await fetchDashboardStats();
+        await fetchAiMotivation();
+      } catch (err) {
+        console.error('Initial data load failed:', err);
+      }
       setLoading(false);
     };
     initData();

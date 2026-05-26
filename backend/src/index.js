@@ -1130,9 +1130,50 @@ app.get('/api/profile', async (req, res) => {
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
 
   try {
-    const profile = await dbGet('SELECT * FROM user_profile WHERE user_id = ?', [userId]);
+    let profile = await dbGet('SELECT * FROM user_profile WHERE user_id = ?', [userId]);
     if (!profile) {
-      return res.json({ onboardingCompleted: false });
+      const existingPlan = await dbGet(
+        `SELECT
+          COUNT(*) as task_count,
+          MIN(date) as start_date,
+          MAX(date) as target_exam_date
+         FROM study_plan
+         WHERE user_id = ? AND task_type <> 'buffer'`,
+        [userId]
+      );
+      const existingLogs = await dbGet('SELECT COUNT(*) as log_count FROM time_logs WHERE user_id = ?', [userId]);
+      const hasExistingData = (existingPlan?.task_count || 0) > 0 || (existingLogs?.log_count || 0) > 0;
+
+      if (!hasExistingData) {
+        return res.json({ onboardingCompleted: false });
+      }
+
+      await dbRun(
+        `INSERT INTO user_profile (
+          user_id, target_year, start_date, target_exam_date, weekday_hours, weekend_hours,
+          preferred_slots, revision_frequency, mock_test_frequency, current_prep_level,
+          completed_topics, weak_subjects, break_preference, user_type, streak_count, last_active_date
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userId,
+          2027,
+          existingPlan?.start_date || new Date().toISOString().split('T')[0],
+          existingPlan?.target_exam_date || '2027-02-06',
+          3,
+          6,
+          JSON.stringify(['evening']),
+          'weekly',
+          'biweekly',
+          'intermediate',
+          JSON.stringify([]),
+          JSON.stringify([]),
+          'pomodoro',
+          'student',
+          0,
+          null
+        ]
+      );
+      profile = await dbGet('SELECT * FROM user_profile WHERE user_id = ?', [userId]);
     }
     
     res.json({
