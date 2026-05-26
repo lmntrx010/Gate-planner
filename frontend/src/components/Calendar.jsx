@@ -1140,7 +1140,7 @@ export default function Calendar({ onSelectTopic }) {
                 disabled={weeklyLoading}
                 className="py-3 rounded-lg bg-cyber-primary hover:bg-blue-600 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-2"
               >
-                <Wand2 className="w-4 h-4" /> {weeklyLoading ? 'Generating...' : 'Ask AI To Plan'}
+                <Wand2 className="w-4 h-4" /> {weeklyLoading ? 'Generating...' : 'Ask Gemini To Plan'}
               </button>
               <button
                 type="button"

@@ -15,8 +15,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-const openaiApiKey = process.env.OPENAI_API_KEY;
-const openaiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const supabase = supabaseUrl && supabaseAnonKey && !supabaseAnonKey.startsWith('PASTE_')
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
@@ -1901,7 +1901,7 @@ function coerceWeeklyPlan(rawPlan, weekDates) {
 app.post('/api/calendar/weekly-ai-suggest', async (req, res) => {
   const userId = getAuthUser(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized session.' });
-  if (!openaiApiKey) return res.status(400).json({ error: 'OPENAI_API_KEY is not set on the backend.' });
+  if (!geminiApiKey) return res.status(400).json({ error: 'GEMINI_API_KEY is not set on the backend.' });
 
   const { weekStart, dailyHours = {}, prompt = '' } = req.body || {};
   if (!weekStart) return res.status(400).json({ error: 'weekStart is required.' });
@@ -1925,65 +1925,60 @@ app.post('/api/calendar/weekly-ai-suggest', async (req, res) => {
       minutes: item.duration_minutes || 60
     }));
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const responseSchema = {
+      type: 'OBJECT',
+      properties: {
+        days: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              date: { type: 'STRING' },
+              tasks: {
+                type: 'ARRAY',
+                items: {
+                  type: 'OBJECT',
+                  properties: {
+                    subject: { type: 'STRING' },
+                    title: { type: 'STRING' },
+                    mode: { type: 'STRING', enum: ['full', 'skim', 'revision', 'pyq', 'custom'] },
+                    plannedMinutes: { type: 'INTEGER' },
+                    source: { type: 'STRING', enum: ['topic', 'video', 'custom'] },
+                    topicId: { type: 'STRING' },
+                    learningItemId: { type: 'STRING' }
+                  },
+                  required: ['subject', 'title', 'mode', 'plannedMinutes', 'source', 'topicId', 'learningItemId']
+                }
+              }
+            },
+            required: ['date', 'tasks']
+          }
+        }
+      },
+      required: ['days']
+    };
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'x-goog-api-key': geminiApiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: openaiModel,
-        temperature: 0.2,
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'weekly_study_plan',
-            strict: true,
-            schema: {
-              type: 'object',
-              additionalProperties: false,
-              properties: {
-                days: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    additionalProperties: false,
-                    properties: {
-                      date: { type: 'string' },
-                      tasks: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          additionalProperties: false,
-                          properties: {
-                            subject: { type: 'string' },
-                            title: { type: 'string' },
-                            mode: { type: 'string', enum: ['full', 'skim', 'revision', 'pyq', 'custom'] },
-                            plannedMinutes: { type: 'integer' },
-                            source: { type: 'string', enum: ['topic', 'video', 'custom'] },
-                            topicId: { type: 'string' },
-                            learningItemId: { type: 'string' }
-                          },
-                          required: ['subject', 'title', 'mode', 'plannedMinutes', 'source', 'topicId', 'learningItemId']
-                        }
-                      }
-                    },
-                    required: ['date', 'tasks']
-                  }
-                }
-              },
-              required: ['days']
-            }
-          }
+        systemInstruction: {
+          parts: [{
+            text: 'Create a realistic 7-day GATE CS study plan. Respect each day capacity. Prefer provided video/topic IDs when matching. Return JSON only.'
+          }]
         },
-        messages: [
-          {
-            role: 'system',
-            content: 'Create a realistic 7-day GATE CS study plan. Respect each day capacity. Prefer provided video/topic IDs when matching. Return JSON only.'
-          },
-          {
-            role: 'user',
-            content: JSON.stringify({
+        generationConfig: {
+          temperature: 0.2,
+          response_mime_type: 'application/json',
+          response_schema: responseSchema
+        },
+        contents: [{
+          role: 'user',
+          parts: [{
+            text: JSON.stringify({
               weekDates,
               dailyHours,
               userInstruction: prompt,
@@ -1991,17 +1986,17 @@ app.post('/api/calendar/weekly-ai-suggest', async (req, res) => {
               topics: compactTopics,
               videos: compactVideos
             })
-          }
-        ]
+          }]
+        }]
       })
     });
 
     const data = await response.json();
     if (!response.ok) {
-      return res.status(502).json({ error: data.error?.message || 'AI planning request failed.' });
+      return res.status(502).json({ error: data.error?.message || 'Gemini planning request failed.' });
     }
 
-    const content = data.choices?.[0]?.message?.content || '{}';
+    const content = data.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('') || '{}';
     const parsed = JSON.parse(content);
     res.json({ success: true, plan: coerceWeeklyPlan(parsed, weekDates) });
   } catch (err) {
