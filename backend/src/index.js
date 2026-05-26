@@ -1066,6 +1066,7 @@ async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
       .filter(item => subjectId === item.subject_id)
       .filter(item => !options.idPrefix || item.id.startsWith(options.idPrefix))
       .filter(item => !options.provider || item.provider === options.provider)
+      .filter(item => !options.titlePattern || options.titlePattern.test(item.title || ''))
       .sort((a, b) => {
         const sequenceDiff = (Number(a.sequence) || 0) - (Number(b.sequence) || 0);
         return sequenceDiff || String(a.title).localeCompare(String(b.title));
@@ -1087,7 +1088,7 @@ async function createNitcPhaseOnePlan(userId, rawPlanningOptions = {}) {
   pushLearningItemsFor('C Programming', 'creator_nitc', { idPrefix: 'creator_block_' });
   pushLearningItemsFor('Data Structure', 'creator_nitc', { idPrefix: 'creator_block_' });
   pushLearningItemsFor('Operating System', 'creator_nitc', { idPrefix: 'creator_block_' });
-  pushLearningItemsFor('Algorithm', 'creator_nitc', { idPrefix: 'alg_' });
+  pushLearningItemsFor('Algorithm', 'creator_nitc', { idPrefix: 'alg_', titlePattern: /^L\d+/i });
   pushLearningItemsFor('Discrete Mathematics', 'creator_nitc', { idPrefix: 'creator_dm_go_' });
 
   pushCatalogTopics('Engineering Mathematics');
